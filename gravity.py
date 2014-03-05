@@ -29,12 +29,16 @@ class Jumpman(object):
         x = self.position[0] + self.velocity[0]*dt
         y = self.position[1] + self.velocity[1]*dt
         self.position = (x,y)
+    def jump(self):
+        vx = self.velocity[0]
+        vy = -100
+        self.velocity = (vx,vy)
         
 def gravity(jumpman, dt):
     """
     updates the velocity of the jumpman after time dt has passed
     """
-    acceleration = 30
+    acceleration = 50
     speed = jumpman.getVelocity()[1] #jumpman velocity should be a tuple with x-comp and y-comp
     yPos = jumpman.getPosition()[1] #position should be tuple of x-coor and y-coor of top right corner
     
@@ -49,7 +53,9 @@ FPS = 30 # frames per second setting
 fpsClock = pygame.time.Clock()
 
 # set up the window
-DISPLAYSURF = pygame.display.set_mode((400, 1000), 0, 32)
+WINDOWHEIGHT = 600
+WINDOWWIDTH = 600
+DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
 pygame.display.set_caption('Gravity')
 
 WHITE = (255, 255, 255)
@@ -57,8 +63,11 @@ BLACK = (0,0,0)
 
 n = 100.0
 
-man = Jumpman((0.0,0.0),(0.0,0.0))
+man = Jumpman((0.0,100.0),(40.0,0.0))
 pygame.draw.rect(DISPLAYSURF, WHITE, (man.getPosition()[0], man.getPosition()[1], n,n))
+
+count=0
+man.jump()
 
 while True: # the main game loop
     DISPLAYSURF.fill(BLACK)
@@ -68,8 +77,17 @@ while True: # the main game loop
             pygame.quit()
             sys.exit()
     dt = 1.0/FPS
-    gravity(man,dt)
+    
+    #accounts for collision with botton of window
+    if(man.getPosition()[1] < (WINDOWHEIGHT-n)):
+        gravity(man,dt)
+    else:
+        man.setPosition((man.getPosition()[0],(WINDOWHEIGHT-n)))
+        man.setVelocity((0.0,0.0))
+
     man.updatePosition(dt)
+
+    
     
     #draws a new jumpman rectangel
     pygame.draw.rect(DISPLAYSURF, WHITE, (man.getPosition()[0],man.getPosition()[1], n,n))
