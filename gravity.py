@@ -61,13 +61,11 @@ pygame.display.set_caption('Gravity')
 WHITE = (255, 255, 255)
 BLACK = (0,0,0)
 
-n = 100.0
+MAN_HEIGHT = 100.0
+MAN_WIDTH = 50.0
 
 man = Jumpman((0.0,100.0),(40.0,0.0))
-pygame.draw.rect(DISPLAYSURF, WHITE, (man.getPosition()[0], man.getPosition()[1], n,n))
-
-count=0
-man.jump()
+pygame.draw.rect(DISPLAYSURF, WHITE, (man.getPosition()[0], man.getPosition()[1], MAN_WIDTH,MAN_HEIGHT))
 
 while True: # the main game loop
     DISPLAYSURF.fill(BLACK)
@@ -76,22 +74,26 @@ while True: # the main game loop
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
+        if event.type == KEYDOWN:
+            if event.key == K_SPACE:
+                man.jump()
+                
     dt = 1.0/FPS
     
     #accounts for collision with botton of window
-    if(man.getPosition()[1] < (WINDOWHEIGHT-n)):
+    man.updatePosition(dt)
+
+    if(man.getPosition()[1] < (WINDOWHEIGHT-MAN_HEIGHT)):
         gravity(man,dt)
     else:
-        man.setPosition((man.getPosition()[0],(WINDOWHEIGHT-n)))
+        man.setPosition((man.getPosition()[0],(WINDOWHEIGHT-MAN_HEIGHT)))
         man.setVelocity((0.0,0.0))
 
-    man.updatePosition(dt)
 
     
     
     #draws a new jumpman rectangel
-    pygame.draw.rect(DISPLAYSURF, WHITE, (man.getPosition()[0],man.getPosition()[1], n,n))
-
+    pygame.draw.rect(DISPLAYSURF, WHITE, (man.getPosition()[0], man.getPosition()[1], MAN_WIDTH, MAN_HEIGHT))
     pygame.display.update()
     fpsClock.tick(FPS)
 
