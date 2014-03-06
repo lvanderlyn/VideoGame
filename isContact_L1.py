@@ -133,7 +133,7 @@ def isContact(actor, other):
     actor and some other object'''
     actor_rect = pygame.Rect(actor.getX(), actor.getY(), actor.getWidth(), actor.getHeight())
     other_rect = pygame.Rect(other.getX(), other.getY(), other.getWidth(), other.getHeight())
-    if (actor_rect.right - 0.25* actor_rect.width <= other_rect.right) and (actor_rect.right - 0.25*actor_rect.width >= other_rect.left):
+    if (actor_rect.right - 0.75* actor_rect.width <= other_rect.right) and (actor_rect.right - 0.25*actor_rect.width >= other_rect.left):
         if actor_rect.bottom >= other_rect.top:
             return True
     else:
@@ -220,7 +220,7 @@ while True:
     player.setVelocity((0,0))
     if mode == 4:
         if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
-            player.setVelocity((0,MOVESPEED))
+            player.setVelocity((0,0))
         if moveUp and player.getY() > 0:
             player.setVelocity((0,-1*MOVESPEED))
         if moveLeft and player.getX() > 0:
@@ -251,17 +251,16 @@ while True:
         if moveUp and player.getY() > 0:
             player.setVelocity((0,0))
         if moveLeft and player.getX() > 0:
-            player.setVelocity((MOVESPEED,0))
+            player.setVelocity((-1*MOVESPEED,0))
         if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
-            player.setVelocity((-1*MOVESPEED,0))        
+            player.setVelocity((MOVESPEED,0))        
         gravity(player,dt)
 
     # draw the player onto the surface
-    player.updatePosition(dt)
-    pygame.draw.rect(windowSurface, WHITE, (player.getX(), player.getY(), MAN_WIDTH,MAN_HEIGHT))
     pygame.draw.rect(windowSurface, GREEN, (ladder.getX(), ladder.getY(), ladder.getWidth(),ladder.getHeight()))
     pygame.draw.rect(windowSurface, BLUE, (plat.getX(), plat.getY(), plat.getWidth(),plat.getHeight()))
-
+    player.updatePosition(dt)
+    pygame.draw.rect(windowSurface, WHITE, (player.getX(), player.getY(), MAN_WIDTH,MAN_HEIGHT))
     
     # draw the window onto the screen
     pygame.display.update()
