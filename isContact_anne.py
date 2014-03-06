@@ -120,7 +120,7 @@ MODE_CANCLIMB = 4
 def isContact(actor, other):
     '''takes in the jumpman actor and an object and determines if there is contact between the two'''
     actor_rect = pygame.Rect(actor.getX(),actor.getY(),actor.getWidth()+1,actor.getHeight()+1)
-    other_rect = pygame.Rect(actor.getX(),actor.getY(),other.getWidth()+1,other.getHeight()+1)
+    other_rect = pygame.Rect(other.getX(),other.getY(),other.getWidth()+1,other.getHeight()+1)
     contact = other_rect.colliderect(actor_rect)
     if contact:
         print "True"
