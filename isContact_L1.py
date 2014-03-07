@@ -49,6 +49,8 @@ PLATFORM_WIDTH = 300
 
 dt = FPS/1.0
 
+
+
 class Jumpman(object):
     """
     Basic jumpman object that stores a tuple position and a tuple velocity
@@ -209,7 +211,7 @@ while True:
             if event.key == K_UP or event.key == ord('w'):
                 moveUp = False
             if event.key == K_DOWN or event.key == ord('s'):
-                    moveDown = False
+                moveDown = False
         
             
     print mode
@@ -218,7 +220,7 @@ while True:
     windowSurface.fill(BLACK)
     # move the player
     player.setVelocity((0,0))
-    if mode == 4:
+    if mode == MODE_CANCLIMB:
         if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
             player.setVelocity((0,0))
         if moveUp and player.getY() > 0:
@@ -227,7 +229,7 @@ while True:
             player.setVelocity((-1*MOVESPEED,0))
         if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
             player.setVelocity((MOVESPEED,0))
-    if mode == 2:
+    if mode == MODE_WALK:
         if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
             player.setVelocity((0,0))
         if moveUp and player.getY() > 0:
@@ -236,7 +238,7 @@ while True:
             player.setVelocity((-1*MOVESPEED,0))
         if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
             player.setVelocity((MOVESPEED,0))
-    if mode == 1:
+    if mode == MODE_CLIMB:
         if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
             player.setVelocity((0,MOVESPEED))
         if moveUp and player.getY() > 0:
@@ -245,7 +247,7 @@ while True:
             player.setVelocity((0,0))
         if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
             player.setVelocity((0,0))
-    if mode == 3:
+    if mode == MODE_FALL:
         if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
             player.setVelocity((0,0))
         if moveUp and player.getY() > 0:
