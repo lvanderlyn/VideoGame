@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Fri Mar  7 16:53:22 2014
+
+@author: koenigin
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Wed Mar  5 14:32:50 2014
 
 @author: koenigin
@@ -318,9 +325,3 @@ while True:
     pygame.display.update()
     mainClock.tick(FPS)
 pygame.quit()
-
-        
-            
-            
-        
-        

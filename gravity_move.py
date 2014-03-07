@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Fri Mar  7 18:34:55 2014
+
+@author: koenigin
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Tue Mar  4 18:28:41 2014
 
 @author: anneubuntu
@@ -13,10 +20,9 @@ class Jumpman(object):
     """
     Basic jumpman object that stores a tuple position and a tuple velocity
     """
-    def __init__(self, position, velocity, width, height):
+    def __init__(self, position, width, height):
         #position and velocity are tuples of 2 x and y components
         self.position = position
-        self.velocity = velocity
         self.width = width
         self.height = height
     def getWidth(self):
@@ -35,30 +41,18 @@ class Jumpman(object):
         return self.position[1]
     def setY(self, y):
         self.position = (self.position[0],y)
-    def setVelocity(self,velocity):
-        self.velocity = velocity
-    def getVelocity(self):
-        return self.velocity
     def updatePosition(self, dt):
-        x = self.position[0] + self.velocity[0]*dt
-        y = self.position[1] + self.velocity[1]*dt
         self.position = (x,y)
     def jump(self):
-        vx = self.velocity[0]
-        vy = -10
-        self.velocity = (vx,vy)
-        
-def gravity(jumpman, dt):
+        self.position = (self.position[0],self.position[1]+0.5*50)
+                         
+def gravity(jumpman):
     """
     updates the velocity of the jumpman after time dt has passed
     """
     acceleration = 50
-    speed = jumpman.getVelocity()[1] #jumpman velocity should be a tuple with x-comp and y-comp
-    yPos = jumpman.getPosition()[1] #position should be tuple of x-coor and y-coor of top right corner
     
-    dy = speed*dt + 0.5*acceleration*dt**2
-    
-    jumpman.setVelocity((jumpman.getVelocity()[0], speed+(acceleration*dt)))
+    jumpman.setY(jumpman.getY()+0.5*acceleration)
 
 
 pygame.init()
@@ -85,18 +79,23 @@ MODE_CANCLIMB = 4
 MAN_HEIGHT = 100.0
 MAN_WIDTH = 50.0
 
-MOVESPEED = 5
+MOVESPEED = 10
 
-man = Jumpman((0.0,100.0),(40.0,0.0), MAN_WIDTH, MAN_HEIGHT)
-pygame.draw.rect(DISPLAYSURF, WHITE, (man.getPosition()[0], man.getPosition()[1], man.getWidth(),man.getHeight()))
+man = Jumpman((0.0,0.0), MAN_WIDTH, MAN_HEIGHT)
+pygame.draw.rect(DISPLAYSURF, WHITE, (man.getX(), man.getY(), man.getWidth(),man.getHeight()))
 
 mode = 0
 
     
 moveY = 0
 moveX = 0
-jump = False
 isGravity = True
+jump = False
+moveUp = False
+moveDown = False
+moveLeft = False
+moveRight = False
+
 
 while True: # the main game loop
     DISPLAYSURF.fill(BLACK)
@@ -104,71 +103,63 @@ while True: # the main game loop
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == KEYDOWN:                   #denotes that one or more keys are pushed down
+        if event.type == KEYDOWN:
+            # change the keyboard variables
             if event.key == K_LEFT or event.key == ord('a'):
-                moveX = -1*MOVESPEED
+                moveRight = False
+                moveLeft = True
             if event.key == K_RIGHT or event.key == ord('d'):
-                moveX = 1*MOVESPEED
+                moveLeft = False
+                moveRight = True
             if event.key == K_UP or event.key == ord('w'):
-                moveY = -1*MOVESPEED
+                moveDown = False
+                moveUp = True
             if event.key == K_DOWN or event.key == ord('s'):
-                moveY = MOVESPEED
+                moveUp = False
+                moveDown = True
             if event.key == K_SPACE:
-                man.jump()
+                jump = True
         if event.type == KEYUP:
             if event.key == K_ESCAPE:
                 pygame.quit()
                 sys.exit()
             if event.key == K_LEFT or event.key == ord('a'):
-                moveX = 0
+                moveLeft = False
             if event.key == K_RIGHT or event.key == ord('d'):
-                moveX = 0
+                moveRight = False
             if event.key == K_UP or event.key == ord('w'):
-                moveY = 0
+                moveUp = False
             if event.key == K_DOWN or event.key == ord('s'):
-                moveY = 0
-            if event.key == K_SPACE:
-                jump = False
-                
+                moveDown = False
         
 
                 
-    dt = 0.1
+    dt = 1.0/FPS
     
-    print mode
-    
-    
-    if mode == MODE_FALL:
-        man.setY(man.getY() + moveY)
-        isGravity = True
-    if mode == MODE_WALK:
-        isGravity=False
-        man.setX(man.getX() + moveX)
-    if jump:
-        mode == MODE_FALL
-        isGravity = True
-        man.jump()
 
-    if isGravity:
-        gravity(man, dt)
-    
-    if(man.getY() < (WINDOWHEIGHT-MAN_HEIGHT)):
-        mode = MODE_FALL
+
+    if(man.getPosition()[1] < (WINDOWHEIGHT-MAN_HEIGHT)):
+        isGravity = True
     else:
-        man.setPosition((man.getX(),(WINDOWHEIGHT-MAN_HEIGHT)))
-        man.setVelocity((0.0,0.0))
-        mode = MODE_WALK
+        man.setPosition((man.getPosition()[0],(WINDOWHEIGHT-MAN_HEIGHT)))
+        isGravity = False
+    if jump:   
+        man.jump()
+        jump = False
     
-    man.updatePosition(dt)
-
-
+    if moveLeft:
+        man.setX(man.getX()+ -1*MOVESPEED)
+    if moveRight:
+        man.setX(man.getX()+ 1*MOVESPEED)
+    if moveUp:
+        man.setY(man.getY()+ -1*MOVESPEED)
+    if moveDown:
+        man.setX(man.getY()+ 1*MOVESPEED)
+        
+    gravity(man)
     
     
     #draws a new jumpman rectangel
     pygame.draw.rect(DISPLAYSURF, WHITE, (man.getX(), man.getY(), MAN_WIDTH, MAN_HEIGHT))
     pygame.display.update()
     fpsClock.tick(FPS)
-
-
-
-        
