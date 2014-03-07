@@ -115,18 +115,29 @@ MODE_CANCLIMB = 4
 
 
     
-
+#
+#
+#def isContact(actor, other):
+#    '''takes in the jumpman actor and an object and determines if there is contact between the two'''
+#    actor_rect = pygame.Rect(actor.getX(),actor.getY(),actor.getWidth()+1,actor.getHeight()+1)
+#    other_rect = pygame.Rect(actor.getX(),actor.getY(),other.getWidth()+1,other.getHeight()+1)
+#    contact = other_rect.colliderect(actor_rect)
+#    if contact:
+#        print "True"
+#    else:
+#        print "False"
+#    return contact
 
 def isContact(actor, other):
-    '''takes in the jumpman actor and an object and determines if there is contact between the two'''
-    actor_rect = pygame.Rect(actor.getX(),actor.getY(),actor.getWidth()+1,actor.getHeight()+1)
-    other_rect = pygame.Rect(actor.getX(),actor.getY(),other.getWidth()+1,other.getHeight()+1)
-    contact = other_rect.colliderect(actor_rect)
-    if contact:
-        print "True"
+    '''hopefull actually tells if there is contact between the bottom of the
+    actor and some other object'''
+    actor_rect = pygame.Rect(actor.getX(), actor.getY(), actor.getWidth(), actor.getHeight())
+    other_rect = pygame.Rect(other.getX(), other.getY(), other.getWidth(), other.getHeight())
+    if (actor_rect.right - 0.25* actor_rect.width <= other_rect.right) and (actor_rect.right - 0.25*actor_rect.width >= other_rect.left):
+        if actor_rect.bottom >= other_rect.top:
+            return True
     else:
-        print "False"
-    return contact
+        return False
 
 
 def modeSelect(actor, climb, walk):
@@ -150,7 +161,7 @@ def modeSelect(actor, climb, walk):
         return MODE_WALK
     elif Climb and (not Walk):
         return MODE_CLIMB
-    else:
+    elif not Climb and (not Walk):
         return MODE_FALL
         
 def gravity(jumpman, dt):
@@ -167,126 +178,39 @@ def gravity(jumpman, dt):
 
 
 while True:
-
+    mode = modeSelect(player, [ladder], [plat])    
     for event in pygame.event.get():
-        mode = modeSelect(player, [ladder], [plat])
         if event.type == QUIT:
             running = False
             pygame.quit()
             sys.exit()
-        if mode == MODE_CANCLIMB:
-            if event.type == KEYDOWN:                   #denotes that one or more keys are pushed down
-                # change the keyboard variables
-                if event.key == K_LEFT or event.key == ord('a'):
-                    moveRight = False
-                    moveLeft = True
-                if event.key == K_RIGHT or event.key == ord('d'):
-                    moveLeft = False
-                    moveRight = True
-                if event.key == K_UP or event.key == ord('w'):
+        if event.type == KEYDOWN:                   #denotes that one or more keys are pushed down
+        # change the keyboard variables
+            if event.key == K_LEFT or event.key == ord('a'):
+                moveRight = False
+                moveLeft = True
+            if event.key == K_RIGHT or event.key == ord('d'):
+                moveLeft = False
+                moveRight = True
+            if event.key == K_UP or event.key == ord('w'):
+                moveDown = False
+                moveUp = True
+            if event.key == K_DOWN or event.key == ord('s'):
+                moveUp = False
+                moveDown = True
+        if event.type == KEYUP:                     #denotes that no keys are pushed down
+            if event.key == K_ESCAPE:
+                pygame.quit()
+                sys.exit()
+            if event.key == K_LEFT or event.key == ord('a'):
+                moveLeft = False
+            if event.key == K_RIGHT or event.key == ord('d'):
+                moveRight = False
+            if event.key == K_UP or event.key == ord('w'):
+                moveUp = False
+            if event.key == K_DOWN or event.key == ord('s'):
                     moveDown = False
-                    moveUp = True
-                if event.key == K_DOWN or event.key == ord('s'):
-                    moveUp = False
-                    moveDown = True
-            if event.type == KEYUP:                     #denotes that no keys are pushed down
-                if event.key == K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == K_LEFT or event.key == ord('a'):
-                    moveLeft = False
-                if event.key == K_RIGHT or event.key == ord('d'):
-                    moveRight = False
-                if event.key == K_UP or event.key == ord('w'):
-                    moveUp = False
-                if event.key == K_DOWN or event.key == ord('s'):
-                    moveDown = False
-        elif mode == MODE_CLIMB:
-            if event.type == KEYDOWN:                   #denotes that one or more keys are pushed down
-            # change the keyboard variables
-                if event.key == K_LEFT or event.key == ord('a'):
-                    moveRight = False
-                    moveLeft = False
-                if event.key == K_RIGHT or event.key == ord('d'):
-                    moveLeft = False
-                    moveRight = False
-                if event.key == K_UP or event.key == ord('w'):
-                    moveDown = False
-                    moveUp = True
-                if event.key == K_DOWN or event.key == ord('s'):
-                    moveUp = False
-                    moveDown = True
-            if event.type == KEYUP:                     #denotes that no keys are pushed down
-                if event.key == K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == K_LEFT or event.key == ord('a'):
-                    moveLeft = False
-                if event.key == K_RIGHT or event.key == ord('d'):
-                    moveRight = False
-                if event.key == K_UP or event.key == ord('w'):
-                    moveUp = False
-                if event.key == K_DOWN or event.key == ord('s'):
-                    moveDown = False
-        elif mode == MODE_WALK:
-            if event.type == KEYDOWN:                   #denotes that one or more keys are pushed down
-            # change the keyboard variables
-                if event.key == K_LEFT or event.key == ord('a'):
-                    moveRight = False
-                    moveLeft = True
-                if event.key == K_RIGHT or event.key == ord('d'):
-                    moveLeft = False
-                    moveRight = True
-                if event.key == K_UP or event.key == ord('w'):
-                    moveDown = False
-                    moveUp = False
-                if event.key == K_DOWN or event.key == ord('s'):
-                    moveUp = False
-                    moveDown = False
-            if event.type == KEYUP:                     #denotes that no keys are pushed down
-                if event.key == K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == K_LEFT or event.key == ord('a'):
-                    moveLeft = False
-                if event.key == K_RIGHT or event.key == ord('d'):
-                    moveRight = False
-                if event.key == K_UP or event.key == ord('w'):
-                    moveUp = False
-                if event.key == K_DOWN or event.key == ord('s'):
-                    moveDown = False
-        elif mode == MODE_FALL:
-             if event.type == KEYDOWN:                   #denotes that one or more keys are pushed down
-             # change the keyboard variables
-                if event.key == K_LEFT or event.key == ord('a'):
-                    moveRight = False
-                    moveLeft = True
-                if event.key == K_RIGHT or event.key == ord('d'):
-                    moveLeft = False
-                    moveRight = True
-                if event.key == K_UP or event.key == ord('w'):
-                    moveDown = False
-                    moveUp = False
-                if event.key == K_DOWN or event.key == ord('s'):
-                    moveUp = False
-                    moveDown = False
-             if event.type == KEYUP:
-                if event.key == K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
-                if event.key == K_LEFT or event.key == ord('a'):
-                    moveLeft = False
-                if event.key == K_RIGHT or event.key == ord('d'):
-                    moveRight = False
-                if event.key == K_UP or event.key == ord('w'):
-                    moveUp = False
-                if event.key == K_DOWN or event.key == ord('s'):
-                    moveDown = False
-        else:
-            moveRight = False
-            moveLeft = False
-            moveUp = False
-            moveDown = False   
+        
             
     print mode
       
@@ -294,18 +218,45 @@ while True:
     windowSurface.fill(BLACK)
     # move the player
     player.setVelocity((0,0))
-    if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
-        player.setVelocity((0,MOVESPEED))
-    if moveUp and player.getY() > 0:
-        player.setVelocity((0,-1*MOVESPEED))
-    if moveLeft and player.getX() > 0:
-        player.setVelocity((-1*MOVESPEED,0))
-    if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
-        player.setVelocity((MOVESPEED,0))
-
+    if mode == 4:
+        if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
+            player.setVelocity((0,MOVESPEED))
+        if moveUp and player.getY() > 0:
+            player.setVelocity((0,-1*MOVESPEED))
+        if moveLeft and player.getX() > 0:
+            player.setVelocity((-1*MOVESPEED,0))
+        if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
+            player.setVelocity((MOVESPEED,0))
+    if mode == 2:
+        if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
+            player.setVelocity((0,0))
+        if moveUp and player.getY() > 0:
+            player.setVelocity((0,0))
+        if moveLeft and player.getX() > 0:
+            player.setVelocity((-1*MOVESPEED,0))
+        if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
+            player.setVelocity((MOVESPEED,0))
+    if mode == 1:
+        if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
+            player.setVelocity((0,MOVESPEED))
+        if moveUp and player.getY() > 0:
+            player.setVelocity((0,-1*MOVESPEED))
+        if moveLeft and player.getX() > 0:
+            player.setVelocity((0,0))
+        if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
+            player.setVelocity((0,0))
+    if mode == 3:
+        if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
+            player.setVelocity((0,0))
+        if moveUp and player.getY() > 0:
+            player.setVelocity((0,0))
+        if moveLeft and player.getX() > 0:
+            player.setVelocity((MOVESPEED,0))
+        if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
+            player.setVelocity((-1*MOVESPEED,0))        
+        gravity(player,dt)
 
     # draw the player onto the surface
-    gravity(player,dt)
     player.updatePosition(dt)
     pygame.draw.rect(windowSurface, WHITE, (player.getX(), player.getY(), MAN_WIDTH,MAN_HEIGHT))
     pygame.draw.rect(windowSurface, GREEN, (ladder.getX(), ladder.getY(), ladder.getWidth(),ladder.getHeight()))
