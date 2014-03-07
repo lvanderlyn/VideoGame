@@ -18,8 +18,8 @@ mainClock = pygame.time.Clock()
 FPS = 30
 
 # set up the window
-WINDOWWIDTH = 1600
-WINDOWHEIGHT = 850
+WINDOWWIDTH = 400
+WINDOWHEIGHT = 400
 windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT), 0, 32)
 pygame.display.set_caption('Ladders')
 
@@ -97,13 +97,15 @@ class Platform(Jumpman):
         self.width = width
         self.height = height
         self.identity = identity
+    def getIdentity(self):
+        return self.identity
 
 
-
+#the below code creates a jumpman actor, two platforms and a ladder
 player = Jumpman((0,0),(0,0), MAN_WIDTH, MAN_HEIGHT)
 pygame.draw.rect(windowSurface, WHITE, (player.getX(), player.getY(), player.getWidth(),player.getHeight()))
 
-ladder = Platform((200,200),LADDER_WIDTH,LADDER_HEIGHT, 'ladder')
+ladder = Platform((100,200),LADDER_WIDTH,LADDER_HEIGHT, 'ladder')
 pygame.draw.rect(windowSurface, GREEN, (ladder.getX(), ladder.getY(), ladder.getWidth(),ladder.getHeight()))
 
 plat1 = Platform((0,300),PLATFORM_WIDTH,PLATFORM_HEIGHT, 'platform')
@@ -113,10 +115,12 @@ plat2 = Platform((0,200), PLATFORM_WIDTH, PLATFORM_HEIGHT, 'platform')
 pygame.draw.rect(windowSurface, BLUE, (plat2.getX(), plat2.getY(), plat2.getWidth(), plat2.getHeight()))
 
 background = [plat1, plat2, ladder]
-MODE_CLIMB = 1
-MODE_WALK = 2
-MODE_FALL = 3
-MODE_CANCLIMB = 4
+print plat1.getIdentity()
+
+#MODE_CLIMB = 1
+#MODE_WALK = 2
+#MODE_FALL = 3
+#MODE_CANCLIMB = 4
 
 
 
@@ -163,45 +167,56 @@ MODE_CANCLIMB = 4
 
 
 def modeSelect(actor, background):
-    #Let's think about things logically:
-    #We have a problem -> ie we want to be able to determine the mode that we
-    #are based on the things that we are contacting
-    #Basically, there are several modes that we need to consider:
-        #1) under a ladder
-            #- actor would have contact with the ladder at the top bottom and sides and platform 
-            #- needs to be able to climb up or walk side to side
-        #2) above a ladder
-            #- actor would have contact only at the bottom and with the platform
-            #- needs to be able to climb down or walk side to side
-        #3) on a ladder
-            #- actor would have contact with ladder, but not platform
-            #- needs to be able to move up and down, but not sideways
-        #4 on ground
-            #- actor would have contact with platform and not ladder
-            #-actor would need to move side to side but not up or down
-        #5 falling
-            #-actor is in contact with now objects
-            #- can move side to side, and fall due to gravity
+    '''Let's think about things logically:
+    We have a problem -> ie we want to be able to determine the mode that we
+    are based on the things that we are contacting
+    Basically, there are several modes that we need to consider:
+        1) under a ladder
+            - actor would have contact with the ladder at the top, bottom and sides and platform 
+            - needs to be able to climb up or walk side to side
+        2) above a ladder
+            - actor would have contact only at the bottom and with the platform
+            - needs to be able to climb down or walk side to side
+        3) on a ladder
+            - actor would have contact with ladder, but not platform
+            - needs to be able to move up and down, but not sideways
+        4 on ground
+            - actor would have contact with platform and not ladder
+            -actor would need to move side to side but not up or down
+        5 falling
+            -actor is in contact with now objects
+            - can move side to side, and fall due to gravity'''
             
+    betweenLadder = False
+    withinLadder = False
+    aboveLadder = False
+    onPlatform = False
+    #not quite working yet (need to through and figure out why)
     for piece in background:
         #runs through all the background objects and decides the contact conditions
         #based on how the objects are interacting and they type of object
-        betweenLadder = False
-        withinLadder = False
-        aboveLadder = False
-        onPlatform = False
-        if piece.type == 'ladder':
-            if actor.getX() + 0.75 * actor.getWidth() >= piece.getX() and actor.getX() + 0.25*actor.getWidth() <= piece.getX() + piece.getWidth():
+        if piece.getIdentity() == 'ladder':
+            if (actor.getX() + 0.75 * actor.getWidth() >= piece.getX()) and (actor.getX() + 0.25*actor.getWidth() <= piece.getX() + piece.getWidth()):
                 betweenLadder = True
-            if actor.getY() - actor.getHeight() >= piece.getY() - piece.getHeight() and actor.getY() - actor.getHeight() < piece.getY():
+            if actor.getY() + actor.getHeight() >= piece.getY() + piece.getHeight() and actor.getY() + actor.getHeight() < piece.getY():
                 withinLadder = True
-            if actor.getY() - actor.getHeight() == piece.getY():
+            if actor.getY() + actor.getHeight() == piece.getY():
                 aboveLadder = True
-        if piece.type == 'platform':
-            if actor.getY() - actor.getHeight() == piece.getY():
-                if actor.getX() + 0.75 * actor.Width() >= piece.getX() and actor.getX() + 0.25*actor.getWidth() <= piece.getX() + piece.getWidth():
-                    onPlatform = True
+        if piece.getIdentity() == 'platform':
+            if actor.getY() + actor.getHeight() <= piece.getY():
+                #if actor.getX() + 0.75 * actor.getWidth() >= piece.getX() and actor.getX() + 0.25*actor.getWidth() <= piece.getX() + piece.getWidth():
+               onPlatform = True
     #Assign Modes here based on the above conditions
+    if betweenLadder and onPlatform and withinLadder and not aboveLadder:
+        return 1
+    elif betweenLadder and aboveLadder and onPlatform and not withinLadder:
+        return 2
+    elif betweenLadder and withinLadder and not onPlatform:
+        return 3
+    elif onPlatform and not betweenLadder:
+        return 4
+    else:
+        return 5
     
     
         
@@ -219,7 +234,7 @@ def gravity(jumpman, dt):
 
 
 while True:
-    mode = modeSelect(player, [ladder], plat)    
+    mode = modeSelect(player, background)    
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
@@ -250,7 +265,7 @@ while True:
             if event.key == K_UP or event.key == ord('w'):
                 moveUp = False
             if event.key == K_DOWN or event.key == ord('s'):
-                    moveDown = False
+                moveDown = False
         
             
     print mode
@@ -259,7 +274,7 @@ while True:
     windowSurface.fill(BLACK)
     # move the player
     player.setVelocity((0,0))
-    if mode == 4:
+    if mode == 1:
         if moveUp and player.getY() > 0:
             player.setVelocity((0,-1*MOVESPEED))
         if moveLeft and player.getX() > 0:
@@ -267,16 +282,23 @@ while True:
         if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
             player.setVelocity((MOVESPEED,0))
     if mode == 2:
+        if moveDown and player.getY()+plaer.getHeigth() < WINDOWIDTH:
+            player.setVelocity((0, MOVESPEED))
         if moveLeft and player.getX() > 0:
             player.setVelocity((-1*MOVESPEED,0))
         if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
             player.setVelocity((MOVESPEED,0))
-    if mode == 1:
+    if mode == 3:
         if moveDown and player.getY()+player.getHeight() < WINDOWHEIGHT:
             player.setVelocity((0,MOVESPEED))
         if moveUp and player.getY() > 0:
             player.setVelocity((0,-1*MOVESPEED))
-    if mode == 3:
+    if mode == 4:
+        if moveLeft and player.getX() > 0:
+            player.setVelocity((-1*MOVESPEED,0))
+        if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
+            player.setVelocity((MOVESPEED,0))        
+    if mode == 5:
         if moveLeft and player.getX() > 0:
             player.setVelocity((-1*MOVESPEED,0))
         if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
