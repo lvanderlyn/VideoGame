@@ -85,7 +85,7 @@ class Model:
         elif aboveLadder and onPlatform:
             return 2
         elif withinLadder or aboveLadder and not onPlatform:
-            #
+            #can move in any direction here 
             return 3
         elif onPlatform and not withinLadder and not aboveLadder:
             return 4
