@@ -48,7 +48,7 @@ MOVESPEED = .1
 MAN_WIDTH = 30
 MAN_HEIGHT = 60
 
-LADDER_HEIGHT = 100
+LADDER_HEIGHT = 110
 LADDER_WIDTH = 40
 
 PLATFORM_HEIGHT = 10
@@ -200,27 +200,27 @@ def modeSelect(actor, platforms, ladders):
     for walk in platforms:
         #runs through all the background objects and decides the contact conditions
         #based on how the objects are interacting and they type of object
-        print actor.getY()
-        print walk.getY()
         if actor.getY() + actor.getHeight() >= walk.getY() and actor.getY() + actor.getHeight() < walk.getY() + walk.getHeight():
             if actor.getX() + 0.75 * actor.getWidth() >= walk.getX() and actor.getX() + 0.25*actor.getWidth() <= walk.getX() + walk.getWidth():
                 onPlatform = True      
                 break
     for up in ladders:
-            if (actor.getX() + 0.75 * actor.getWidth() >= up.getX()) and (actor.getX() + 0.25*actor.getWidth() <= up.getX() + up.getWidth()):
-                if actor.getY() + actor.getHeight() <= up.getY() + up.getHeight() and actor.getY() + actor.getHeight() >= up.getY():
-                    withinLadder = True
-                    break
-                elif actor.getY() + actor.getHeight() == up.getY():
-                    aboveLadder = True
-                    break
+        print actor.getY()
+        print actor.getY() + actor.getHeight()        
+        print up.getY()
+        if (actor.getX() + 0.75 * actor.getWidth() >= up.getX()) and (actor.getX() + 0.25*actor.getWidth() <= up.getX() + up.getWidth()):
+            if actor.getY() + actor.getHeight() <= up.getY() + up.getHeight() and actor.getY()+ actor.getHeight() >= up.getY() and not actor.getY() < up.getY():
+                withinLadder = True
+            elif actor.getY() + actor.getHeight() >= up.getY() and actor.getY() < up.getY():
+                aboveLadder = True
+                break
 
     #Assign Modes here based on the above conditions
     if onPlatform and withinLadder and not aboveLadder:
         return 1
-    elif aboveLadder and onPlatform and not withinLadder:
+    elif aboveLadder and onPlatform:
         return 2
-    elif withinLadder and not onPlatform:
+    elif withinLadder or aboveLadder and not onPlatform:
         return 3
     elif onPlatform and not withinLadder and not aboveLadder:
         return 4
@@ -291,7 +291,7 @@ while True:
         if moveRight and player.getX()+player.getWidth() < WINDOWWIDTH:
             player.setVelocity((MOVESPEED,0))
     if mode == 2:
-        if moveDown and player.getY()+plaer.getHeigth() < WINDOWIDTH:
+        if moveDown and player.getY()+player.getHeight() < WINDOWWIDTH:
             player.setVelocity((0, MOVESPEED))
         if moveLeft and player.getX() > 0:
             player.setVelocity((-1*MOVESPEED,0))
