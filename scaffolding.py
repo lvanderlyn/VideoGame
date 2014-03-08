@@ -43,10 +43,10 @@ LADDER_WIDTH = 30
 class Model:
     def __init__(self):
         self.jumpman = Jumpman(0.0,0.0,J_WIDTH,J_HEIGHT) #need jumpman class
-        self.platforms = [Platform(0,300,200),Platform(0,200,300)]
-        #self.genPlatforms()
-        self.ladders = [Ladder(100,200,200)]
-        #self.genLadders()
+        self.platforms = []
+        self.genPlatforms()
+        self.ladders = []
+        self.genLadders()
         self.mode = self.modeFinder()
     
     def update(self):
