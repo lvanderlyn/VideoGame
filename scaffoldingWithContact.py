@@ -40,7 +40,7 @@ class Model:
     def update(self):
         self.jumpman.update()
         
-    def modeFinder(self):#So not even done yet
+    def modeFinder(self):
         '''Let's think about things logically:
             We have a problem -> ie we want to be able to determine the mode that we
             are based on the things that we are contacting
