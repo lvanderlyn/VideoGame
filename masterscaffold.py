@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sat Mar  8 15:20:32 2014
+
+@author: anneubuntu
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Fri Mar  7 16:12:53 2014
 
 @author: anneubuntu, ddiggins
@@ -132,12 +139,16 @@ class Model:
     def genPlatforms(self):
         #Generates platforms depending of windowheight/width    
         numLayers  = int(math.ceil(WINDOWHEIGHT/(2.0*J_HEIGHT))) #Number of layers of platforms allowed
-        for layer in range(numLayers):
-            y = (WINDOWHEIGHT/numLayers)*layer
-            x = 0
-            width = WINDOWWIDTH #change this to make variable widths
+        h = WINDOWHEIGHT/numLayers
+        initPlat = Platform(0, WINDOWHEIGHT-PLATFORM_HEIGHT, WINDOWWIDTH)
+        self.platforms.append(initPlat)
+        for i in range(0,10):
+            y = random.randint(0, numLayers)*h + h
+            width = random.randint(50,150) #change this to make variable widths
+            x = random.randint(0,WINDOWWIDTH-width)           
             plat = Platform(x,y,width)
             self.platforms.append(plat)
+       
             
     
     def genLadders(self): #Not Dones
@@ -147,22 +158,43 @@ class Model:
         height = 0
         x_pos = 0
         y_coor = 0
+
         for fromPlatform in self.platforms:
             r = random.randint(0,2)
-            if r==0 or r==1: #2/3 chance of having a ladder going down
-                possiblePlatforms = []
+            possiblePlatforms = []
+            #print "do we try to build ladder? ", r
+            if r==0 or r==1: #2/3 chance of having a ladder going down              
                 for toPlatform in self.platforms:
-                    for i in range(random.randint(0,4)):
-                        x_pos = random.randint(fromPlatform.x, (fromPlatform.x + fromPlatform.width-LADDER_WIDTH)) #choose random x position on platform
-                        if x_pos in range(toPlatform.x, toPlatform.x + toPlatform.width - LADDER_WIDTH): 
-                            possiblePlatforms.append(toPlatform)
-                for possPlat in possiblePlatforms:
-                    if (possPlat.y > fromPlatform.y + (2*h)):
-                        possiblePlatforms.remove(possPlat)
+                    if not (toPlatform==fromPlatform):
+                        for i in range(random.randint(0,4)):#generate 0 to 8 ladders
+                            x_pos = random.randint(fromPlatform.x, (fromPlatform.x + fromPlatform.width-LADDER_WIDTH)) #choose random x position on platform                                               
+                            if x_pos in range(toPlatform.x, toPlatform.x + toPlatform.width-LADDER_WIDTH):
+                                if toPlatform.y>fromPlatform.y:
+                                    possiblePlatforms.append(toPlatform)
+                                    break
+                #print "fromPlatform.y = ", fromPlatform.y
+                for possPlat in possiblePlatforms: #Can't go higher than 2h
+                    #print "possPlat.y = ", possPlat.y
+                    if (possPlat.y > (fromPlatform.y + (2*h))):
+                        #print "removed", possPlat.y
+                        possiblePlatforms.remove(possPlat)       
                 if len(possiblePlatforms) != 0:
-                    p = random.randint(0,len(possiblePlatforms))
-                    ladder = Ladder(x_pos, fromPlatform.y, toPlatform.y - fromPlatform.y)
-                    self.ladders.append(ladder)
+                    p = random.randint(0,len(possiblePlatforms)-1)
+                    endPlatform = possiblePlatforms[p]                
+                    ladder = Ladder(x_pos, fromPlatform.y, endPlatform.y - fromPlatform.y)
+                    #print "ladder", "x_pos = ", x_pos, "fromPlatform.y = ", fromPlatform.y, "toPlatform.y = ", toPlatform.y
+                    if len(self.ladders) > 0:                    
+                        for allLadders in self.ladders:
+                            print allLadders.rect
+                            if ((ladder.x+LADDER_WIDTH) in range(allLadders.x, allLadders.x + LADDER_WIDTH)) or (ladder.x in range(allLadders.x, allLadders.x + LADDER_WIDTH)):
+                                print ladder.x, "found a bad one!"                                
+                                continue                            
+                            else:
+                                self.ladders.append(ladder)
+                                print ladder.x, "created a ladder"
+                        print "--------"
+                    else:
+                        self.ladders.append(ladder)
             
     
 
@@ -181,8 +213,7 @@ class Jumpman: #Defines Jumpman the one and only
         self.y += self.vy
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
-    
-    def jump(self):
+    def jump(self, moveLeft, moveRight):
         self.vy -=0.5 #fiddle with actual number, was selected arbitrarily. it felt GOOD
     
     def gravityOn(self):
@@ -265,6 +296,8 @@ class Controller:
                 self.model.jumpman.vy = 1.0*MOVESPEED
             if event.key == pygame.K_UP:
                 self.model.jumpman.vy = -1.0*MOVESPEED
+            if event.key == pygame.K_SPACE:
+                self.model.jumpman.jump()
         elif self.model.mode == MODE_ONPLATFORM:
             #should be able to move left, right, jump
             self.model.jumpman.vx = 0
@@ -276,18 +309,16 @@ class Controller:
             if event.key == pygame.K_RIGHT:
                 self.model.jumpman.vx = 1.0*MOVESPEED
             if event.key == pygame.K_SPACE:
-                self.model.jumpman.jump()
+                self.model.jumpman.jump(moveLeft, moveRight)
         elif self.model.mode == MODE_FALLING:
             #should be able to move left, right
-            self.model.jumpman.vx = 0
+            #self.model.jumpman.vx = 0
             if event.type != KEYDOWN:
                 return
             if event.key == pygame.K_LEFT:
                 self.model.jumpman.vx = -1.0*MOVESPEED
             if event.key == pygame.K_RIGHT:
                 self.model.jumpman.vx = 1.0*MOVESPEED
-            if event.key == pygame.K_SPACE:
-                self.model.jumpman.jump()
         elif self.model.mode == MODE_UPDOWNLADDER:
             #should be able to move up down left right jump
             self.model.jumpman.vx = 0
