@@ -24,6 +24,7 @@ MODE_ABOVELADDER = 2
 MODE_ONLADDER = 3
 MODE_ONPLATFORM = 4
 MODE_FALLING = 5
+MODE_UPDOWNLADDER = 6
 
 WINDOWWIDTH = 400
 WINDOWHEIGHT = 400
@@ -37,12 +38,14 @@ BLUE = (0, 0, 255)
 
 J_HEIGHT = 40
 J_WIDTH = 20
-PLATFORM_HEIGHT = 10
+PLATFORM_HEIGHT = 20
 LADDER_WIDTH = 30
+
+MOVESPEED = 0.5
 
 class Model:
     def __init__(self):
-        self.jumpman = Jumpman(0.0,0.0,J_WIDTH,J_HEIGHT) #need jumpman class
+        self.jumpman = Jumpman(0.0,40.0,J_WIDTH,J_HEIGHT) #need jumpman class
         self.platforms = []
         self.genPlatforms()
         self.ladders = []
@@ -51,6 +54,10 @@ class Model:
     
     def update(self):
         self.jumpman.update()
+        self.mode = self.modeFinder()
+        if self.mode == MODE_FALLING:
+            self.jumpman.gravity()
+        print self.mode
         
     def modeFinder(self):
         '''Let's think about things logically:
@@ -71,7 +78,12 @@ class Model:
                     -actor would need to move side to side but not up or down
                 5 falling
                     -actor is in contact with now objects
-                    - can move side to side, and fall due to gravity'''
+                    - can move side to side, and fall due to gravity
+                6 updown ladder
+                    - actor on platform 
+                    - in middle of ladder
+                    - can go up ladder or down ladder or left right on platform
+                '''
         withinLadder = False
         aboveLadder = False
         onPlatform = False
@@ -79,12 +91,12 @@ class Model:
         for walk in self.platforms:
             #runs through all the background objects and decides the contact conditions
             #based on how the objects are interacting and they type of object
-            if self.jumpman.y + self.jumpman.height >= walk.y and self.jumpman.y + self.jumpman.height < walk.y + walk.height:
-                if self.jumpman.x + 0.75 * self.jumpman.width >= walk.x and self.jumpman.x + 0.25*self.jumpman.width <= walk.x + walk.width:
+            if (self.jumpman.y + self.jumpman.height >= walk.y) and (self.jumpman.y + self.jumpman.height < walk.y + walk.height):
+                if (self.jumpman.x + (0.5 * self.jumpman.width) >= walk.x) and (self.jumpman.x + (0.5*self.jumpman.width) <= walk.x + walk.width):
                     onPlatform = True      
                     break
         for up in self.ladders:
-            if self.jumpman.x + 0.25 * self.jumpman.width >= up.x and self.jumpman.x + 0.75*self.jumpman.width <= up.x + up.width:
+            if (self.jumpman.x + (0.5 * self.jumpman.width) >= up.x) and (self.jumpman.x + (0.5*self.jumpman.width) <= up.x + up.width):
                 if self.jumpman.y + self.jumpman.height <= up.y + up.height and self.jumpman.y+ self.jumpman.height >= up.y and not self.jumpman.y < up.y:
                     withinLadder = True
                 elif self.jumpman.y + self.jumpman.height >= up.y and self.jumpman.y < up.y:
@@ -92,15 +104,16 @@ class Model:
                 break
 
         #Assign Modes here based on the above conditions
-        if onPlatform and withinLadder and not aboveLadder:
+        if (onPlatform and withinLadder) and not aboveLadder:
             return MODE_UNDERLADDER
         elif aboveLadder and onPlatform:
             return MODE_ABOVELADDER
         elif withinLadder or aboveLadder and not onPlatform:
-            #
             return MODE_ONLADDER
         elif onPlatform and not withinLadder and not aboveLadder:
             return MODE_ONPLATFORM
+        elif onPlatform and withinLadder:
+            return MODE_UPDOWNLADDER
         else:
             return MODE_FALLING
     
@@ -160,10 +173,10 @@ class Jumpman: #Defines Jumpman the one and only
         self.y += self.vy
     
     def jump(self):
-        self.vy -= 5 #fiddle with actual number, was selected arbitrarily. it felt GOOD
+        self.vy -=0.1 #fiddle with actual number, was selected arbitrarily. it felt GOOD
     
     def gravity(self):
-        self.vy += 3 #selected randomly, can change
+        self.vy += 0.005 #selected randomly, can change
         
 class Platform: #Defines platform class
     def __init__(self, x, y, width):
@@ -201,58 +214,84 @@ class Controller:
     def handleEvent(self, event): #Defines all scenarios that can happen to jumpman and movements associated with said states
         if event.type == QUIT:
             pygame.quit()
-        if model.mode == MODE_UNDERLADDER: 
+        if self.model.mode == MODE_UNDERLADDER: 
             #should be able to move up, left, or right, jump
+            self.model.jumpman.vx = 0
+            self.model.jumpman.vy = 0
             if event.type != KEYDOWN:
                 return
             if event.key == pygame.K_LEFT:
-                self.model.jumpman.vx -= 1.0
+                self.model.jumpman.vx = -1.0*MOVESPEED
             if event.key == pygame.K_RIGHT:
-                self.model.jumpman.vx += 1.0
+                self.model.jumpman.vx = 1.0*MOVESPEED
             if event.key == pygame.K_UP:
-                self.model.jumpman.vy -= 1.0
+                self.model.jumpman.vy = -1.0*MOVESPEED
             if event.key == pygame.K_SPACE:
                 self.model.jumpman.jump()
-        elif model.mode == MODE_ABOVELADDER:
+        elif self.model.mode == MODE_ABOVELADDER:
             #should be able to move, down, left, right, jump
+            self.model.jumpman.vx = 0
+            self.model.jumpman.vy = 0
             if event.type != KEYDOWN:
                 return
             if event.key == pygame.K_LEFT:
-                self.model.jumpman.vx -= 1.0
+                self.model.jumpman.vx = -1.0*MOVESPEED
             if event.key == pygame.K_RIGHT:
-                self.model.jumpman.vx += 1.0
+                self.model.jumpman.vx = 1.0*MOVESPEED
             if event.key == pygame.K_DOWN:
-                self.model.jumpman.vy += 1.0
+                self.model.jumpman.vy = 1.0*MOVESPEED
             if event.key == pygame.K_SPACE:
                 self.model.jumpman.jump()
-        elif model.mode == MODE_ONLADDER:
+        elif self.model.mode == MODE_ONLADDER:        
             #should be able to move up, down
+            self.model.jumpman.vx = 0
+            self.model.jumpman.vy = 0
             if event.type != KEYDOWN:
                 return
             if event.key == pygame.K_DOWN:
-                self.model.jumpman.vx += 1.0
+                self.model.jumpman.vy = 1.0*MOVESPEED
             if event.key == pygame.K_UP:
-                self.model.jumpman.vy -= 1.0
-        elif model.mode == MODE_ONPLATFORM:
+                self.model.jumpman.vy = -1.0*MOVESPEED
+        elif self.model.mode == MODE_ONPLATFORM:
             #should be able to move left, right, jump
+            self.model.jumpman.vx = 0
+            self.model.jumpman.vy = 0
             if event.type != KEYDOWN:
                 return
             if event.key == pygame.K_LEFT:
-                self.model.jumpman.vx -= 1.0
+                self.model.jumpman.vx = -1.0*MOVESPEED
             if event.key == pygame.K_RIGHT:
-                self.model.jumpman.vx += 1.0
+                self.model.jumpman.vx = 1.0*MOVESPEED
             if event.key == pygame.K_SPACE:
                 self.model.jumpman.jump()
-        elif model.mode == MODE_FALLING:
+        elif self.model.mode == MODE_FALLING:
             #should be able to move left, right
+            self.model.jumpman.vx = 0
             if event.type != KEYDOWN:
                 return
             if event.key == pygame.K_LEFT:
-                self.model.jumpman.vx -= 1.0
+                self.model.jumpman.vx = -1.0*MOVESPEED
             if event.key == pygame.K_RIGHT:
-                self.model.jumpman.vx += 1.0
+                self.model.jumpman.vx = 1.0*MOVESPEED
             if event.key == pygame.K_SPACE:
                 self.model.jumpman.jump()
+        elif self.model.mode == MODE_UPDOWNLADDER:
+            #should be able to move up down left right jump
+            self.model.jumpman.vx = 0
+            self.model.jumpman.vy = 0
+            if event.type != KEYDOWN:
+                return
+            if event.key == pygame.K_LEFT:
+                self.model.jumpman.vx = -1.0*MOVESPEED
+            if event.key == pygame.K_RIGHT:
+                self.model.jumpman.vx = 1.0*MOVESPEED
+            if event.key == pygame.K_UP:
+                self.model.jumpman.vy = -1.0*MOVESPEED
+            if event.key == pygame.K_DOWN:
+                self.model.jumpman.vy = 1.0*MOVESPEED
+            if event.key == pygame.K_SPACE:
+                self.model.jumpman.jump()
+        
 
             
 if __name__ == '__main__':
