@@ -131,47 +131,6 @@ ladders = [ladder]
 
 
 
-#def isContact(actor, other):
-#    '''hopefull actually tells if there is contact between the bottom of the
-#    actor and some other object'''
-#    actor_rect = pygame.Rect(actor.getX(), actor.getY(), actor.getWidth(), actor.getHeight())
-#    other_rect = pygame.Rect(other.getX(), other.getY(), other.getWidth(), other.getHeight())
-#    if (actor_rect.right - 0.75* actor_rect.width <= other_rect.right) and (actor_rect.right - 0.25*actor_rect.width >= other_rect.left):
-#        if actor_rect.bottom >= other_rect.top:
-#            return True
-#    else:
-#        return False
-           
-
-
-#def modeSelect(actor, climb, walk):
-#    '''take in a list of climable object called 'climb', and list of platforms
-#    called 'walk' and determines the mode (controls allowed) based on what
-#    the jumperman is in contact with'''
-#    
-#    mode = 0
-#    Climb = False
-#    Walk = False
-#    for up in climb:
-#        #checks through objects that are ladders
-#        if isContact(actor, up):
-#            Climb = True
-#            break
-#    for platform in walk:
-#        #checksthrough objects that are platforms
-#        if isContact(actor, platform):
-#            Walk = True
-#            break
-#    if Walk and Climb:
-#        return MODE_CANCLIMB
-#    elif Walk and (not Climb):
-#        return MODE_WALK
-#    elif Climb and (not Walk):
-#        return MODE_CLIMB
-#    elif not Climb and (not Walk):
-#        return MODE_FALL
-
-
 def modeSelect(actor, platforms, ladders):
     '''Let's think about things logically:
     We have a problem -> ie we want to be able to determine the mode that we
@@ -208,7 +167,7 @@ def modeSelect(actor, platforms, ladders):
         print actor.getY()
         print actor.getY() + actor.getHeight()        
         print up.getY()
-        if (actor.getX() + 0.75 * actor.getWidth() >= up.getX()) and (actor.getX() + 0.25*actor.getWidth() <= up.getX() + up.getWidth()):
+        if (actor.getX() + 0.25 * actor.getWidth() >= up.getX()) and (actor.getX() + 0.75*actor.getWidth() <= up.getX() + up.getWidth()):
             if actor.getY() + actor.getHeight() <= up.getY() + up.getHeight() and actor.getY()+ actor.getHeight() >= up.getY() and not actor.getY() < up.getY():
                 withinLadder = True
             elif actor.getY() + actor.getHeight() >= up.getY() and actor.getY() < up.getY():
@@ -221,6 +180,7 @@ def modeSelect(actor, platforms, ladders):
     elif aboveLadder and onPlatform:
         return 2
     elif withinLadder or aboveLadder and not onPlatform:
+        #
         return 3
     elif onPlatform and not withinLadder and not aboveLadder:
         return 4
