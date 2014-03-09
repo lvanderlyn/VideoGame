@@ -251,73 +251,69 @@ class View:
             pygame.draw.rect(self.screen, BLUE, (ladder.x, ladder.y, ladder.width, ladder.height)) #Draws all of the ladders
         pygame.draw.rect(self.screen, WHITE, (self.model.jumpman.x, self.model.jumpman.y, self.model.jumpman.width, self.model.jumpman.height))#Draws our jumpman
 
+    
 class Controller:
     def __init__(self,model):
         self.model = model
-    
+        
     def handleEvent(self, event): #Defines all scenarios that can happen to jumpman and movements associated with said states
         if event.type == QUIT:
             pygame.quit()
+        pressed = pygame.key.get_pressed()
         if self.model.mode == MODE_UNDERLADDER: 
             #should be able to move up, left, or right, jump
             self.model.jumpman.vx = 0
             self.model.jumpman.vy = 0
-            if event.type != KEYDOWN:
-                return
-            if event.key == pygame.K_LEFT:
+            if pressed[K_LEFT]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
-            if event.key == pygame.K_RIGHT:
+            if pressed[K_RIGHT]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
-            if event.key == pygame.K_UP:
+            if pressed[K_UP]:
                 self.model.jumpman.vy = -1.0*MOVESPEED
-            if event.key == pygame.K_SPACE:
+            if pressed[K_SPACE]:
                 self.model.jumpman.jump()
         elif self.model.mode == MODE_ABOVELADDER:
             #should be able to move, down, left, right, jump
             self.model.jumpman.vx = 0
             self.model.jumpman.vy = 0
-            if event.type != KEYDOWN:
-                return
-            if event.key == pygame.K_LEFT:
+            if pressed[K_LEFT]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
-            if event.key == pygame.K_RIGHT:
+            if pressed[K_RIGHT]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
-            if event.key == pygame.K_DOWN:
+            if pressed[K_DOWN]:
                 self.model.jumpman.vy = 1.0*MOVESPEED
-            if event.key == pygame.K_SPACE:
+            if pressed[K_SPACE]:
                 self.model.jumpman.jump()
         elif self.model.mode == MODE_ONLADDER:        
             #should be able to move up, down
             self.model.jumpman.vx = 0
             self.model.jumpman.vy = 0
-            if event.type != KEYDOWN:
-                return
-            if event.key == pygame.K_DOWN:
+            if pressed[K_LEFT]:
+                self.model.jumpman.vx = -1.0*MOVESPEED
+            if pressed[K_RIGHT]:
+                self.model.jumpman.vx = 1.0*MOVESPEED
+            if pressed[K_DOWN]:
                 self.model.jumpman.vy = 1.0*MOVESPEED
-            if event.key == pygame.K_UP:
+            if pressed[K_UP]:
                 self.model.jumpman.vy = -1.0*MOVESPEED
-            if event.key == pygame.K_SPACE:
+            if pressed[K_SPACE]:
                 self.model.jumpman.jump()
         elif self.model.mode == MODE_ONPLATFORM:
             #should be able to move left, right, jump
             self.model.jumpman.vx = 0
             self.model.jumpman.vy = 0
-            if event.type != KEYDOWN:
-                return
-            if event.key == pygame.K_LEFT:
+            if pressed[K_LEFT]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
-            if event.key == pygame.K_RIGHT:
+            if pressed[K_RIGHT]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
-            if event.key == pygame.K_SPACE:
+            if pressed[K_SPACE]:
                 self.model.jumpman.jump()
         elif self.model.mode == MODE_FALLING:
             #should be able to move left, right
-            #self.model.jumpman.vx = 0
-            if event.type != KEYDOWN:
-                return
-            if event.key == pygame.K_LEFT:
+            self.model.jumpman.vx = 0
+            if pressed[K_LEFT]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
-            if event.key == pygame.K_RIGHT:
+            if pressed[K_RIGHT]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
         elif self.model.mode == MODE_UPDOWNLADDER:
             #should be able to move up down left right jump
@@ -325,17 +321,17 @@ class Controller:
             self.model.jumpman.vy = 0
             if event.type != KEYDOWN:
                 return
-            if event.key == pygame.K_LEFT:
+            if pressed[K_LEFT]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
-            if event.key == pygame.K_RIGHT:
+            if pressed[K_RIGHT]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
-            if event.key == pygame.K_UP:
+            if pressed[K_UP]:
                 self.model.jumpman.vy = -1.0*MOVESPEED
-            if event.key == pygame.K_DOWN:
+            if pressed[K_DOWN]:
                 self.model.jumpman.vy = 1.0*MOVESPEED
-            if event.key == pygame.K_SPACE:
+            if pressed[K_SPACE]:
                 self.model.jumpman.jump()
-        
+ 
 
             
 if __name__ == '__main__':
