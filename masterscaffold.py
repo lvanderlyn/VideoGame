@@ -213,7 +213,7 @@ class Jumpman: #Defines Jumpman the one and only
         self.y += self.vy
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
-    def jump(self, moveLeft, moveRight):
+    def jump(self):
         self.vy -=0.5 #fiddle with actual number, was selected arbitrarily. it felt GOOD
     
     def gravityOn(self):
@@ -309,7 +309,7 @@ class Controller:
             if event.key == pygame.K_RIGHT:
                 self.model.jumpman.vx = 1.0*MOVESPEED
             if event.key == pygame.K_SPACE:
-                self.model.jumpman.jump(moveLeft, moveRight)
+                self.model.jumpman.jump()
         elif self.model.mode == MODE_FALLING:
             #should be able to move left, right
             #self.model.jumpman.vx = 0
