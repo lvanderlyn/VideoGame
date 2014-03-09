@@ -294,7 +294,7 @@ class Model:
                         if (x_pos >= toPlatform.x) and (x_pos <= toPlatform.x+LADDER_WIDTH):
                             print "x_pos = ", x_pos, " toPlatform.x = ", toPlatform.x
                             if toPlatform.y>fromPlatform.y:
-                                if toPlatform.y - fromPlatform.y <= 3*h and (toPlatform.y - fromPlatform.y) > PLATFORM_HEIGHT:
+                                if toPlatform.y - fromPlatform.y < 3*h and (toPlatform.y - fromPlatform.y) > PLATFORM_HEIGHT:
                                     possiblePlatforms.append(toPlatform)
                                     goodXPos = x_pos+0
                                     break     
