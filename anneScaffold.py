@@ -128,7 +128,7 @@ BLUE = (0, 0, 255)
 
 J_HEIGHT = 40
 J_WIDTH = 20
-J_LIVES = 2
+J_LIVES = 6
 PLATFORM_HEIGHT = 10
 LADDER_WIDTH = 30
 
@@ -386,7 +386,8 @@ class Jumpman(Actor): #Defines Jumpman the one and only
         self.lostLife = False
     
     def update(self):
-        Actor.update(self)
+        if self.rect.left + self.vx >= 0 and self.rect.right + self.vx <= WINDOWWIDTH and self.rect.bottom + self.vy <= WINDOWHEIGHT-5:
+            Actor.update(self)
 
     def jump(self):
         self.vy -=0.75 #fiddle with actual number, was selected arbitrarily. it felt GOOD
@@ -522,20 +523,24 @@ class View:
         label2 = font.render("GEMS COLLECTED: "+str(self.model.jumpman.gemCount),1,WHITE)
         self.screen.blit(label2, (WINDOWWIDTH - 170,10))
         
+    def levelStart(self,font):
+        pass
 
     def gameOver(self, font):
-      self.screen.fill(BLACK)
-      label = font.render("GAME OVER!", 1, (255,255,255))
-      label1 = font.render("Your gems collected: "+str(self.model.jumpman.gemCount), 1, (255,255,255))
-      label2 = font.render("Your lives lost: "+str(1), 1, (255,255,255))
-      label3 = font.render("Time: "+str(30), 1, (255,255,255))
-      label4 = font.render("Press enter to restart", 1, (255,255,255))
-
-      self.screen.blit(label, (100, 100))
-      self.screen.blit(label1, (100, 150))
-      self.screen.blit(label2, (100, 200))
-      self.screen.blit(label3, (100, 250))
-      self.screen.blit(label4, (100, 300))
+        self.screen.fill(BLACK)
+        label = font.render("GAME OVER!", 1, (255,255,255))
+        label1 = font.render("Your gems collected: "+str(self.model.jumpman.gemCount), 1, (255,255,255))
+        label2 = font.render("Your lives lost: "+str(1), 1, (255,255,255))
+        label3 = font.render("Time: "+str(30), 1, (255,255,255))
+        label4 = font.render("Press enter to restart", 1, (255,255,255))
+    
+        self.screen.blit(label, (100, 100))
+        self.screen.blit(label1, (100, 150))
+        self.screen.blit(label2, (100, 200))
+        self.screen.blit(label3, (100, 250))
+        self.screen.blit(label4, (100, 300))
+      
+      
       
 
 class Controller:
