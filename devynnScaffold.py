@@ -116,8 +116,8 @@ MODE_ONPLATFORM = 4
 MODE_FALLING = 5
 MODE_UPDOWNLADDER = 6
 
-WINDOWWIDTH = 400
-WINDOWHEIGHT = 400
+WINDOWWIDTH = 850
+WINDOWHEIGHT = 850
 
 
 # set up the colors
@@ -276,7 +276,9 @@ class Model:
     def genLadders(self): #Not Dones
         #Generates ladders depending on the location of the platforms
         numLayers = math.ceil(WINDOWHEIGHT/(2.0*J_HEIGHT))
+        global numLayers
         h = WINDOWHEIGHT/numLayers
+        global h
         height = 0
         x_pos = 0
         y_coor = 0
@@ -379,13 +381,19 @@ class Actor:
     
 class Jumpman(Actor): #Defines Jumpman the one and only
     def __init__(self,x,y,width,height):
-        Actor.__init__(self,x,y,width,height)
+        Actor.__init__(self,x,y,width, height)
         self.gemCount = 0
         self.lives = J_LIVES
-    
+        self.image = pygame.image.load("Jumpman.png")
+        transcolor = BLACK
+        self.image.set_colorkey(transcolor)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
     def update(self):
         if self.rect.left + self.vx >= 0 and self.rect.right + self.vx <= WINDOWWIDTH and self.rect.bottom + self.vy <= WINDOWHEIGHT-5:
-            Actor.update(self)
+            self.x += self.vx
+            self.y += self.vy
+            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
     def jump(self):
         self.vy -=0.75 #fiddle with actual number, was selected arbitrarily. it felt GOOD
@@ -402,7 +410,9 @@ class Platform: #Defines platform class
         self.y = y
         self.width = width
         self.height = PLATFORM_HEIGHT #Height 10px
+        image = pygame.image.load("Platformsprite.png")
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.image = pygame.transform.scale(image, (self.width, self.height))
         
 class Ladder: #Defines ladder class
     def __init__(self, x, y, height):
@@ -410,7 +420,11 @@ class Ladder: #Defines ladder class
         self.y = y
         self.width = LADDER_WIDTH #Width 30px
         self.height = height
+        image = pygame.image.load("Laddersprite.png")
+        transcolor = BLACK
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.image = pygame.transform.scale(image, (self.width, self.height))
+        
         
 class Gem(Actor):
     def __init__(self,x,y,width,height):
@@ -473,10 +487,10 @@ class View:
     def draw(self):
         self.screen.fill(BLACK) #Makes screen bg black
         for platform in self.model.platforms:
-            pygame.draw.rect(self.screen, GREEN, platform.rect) #Draws all of the platforms
+            screen.blit(platform.image, (platform.x, platform.y)) #Draws all of the platforms
         for ladder in self.model.ladders:
-            pygame.draw.rect(self.screen, BLUE, ladder.rect) #Draws all of the ladders
-        pygame.draw.rect(self.screen, WHITE, self.model.jumpman.rect)#Draws our jumpman
+            screen.blit(ladder.image, (ladder.x, ladder.y)) #Draws all of the ladders
+        screen.blit(self.model.jumpman.image.convert_alpha(), self.model.jumpman.rect)#Draws our jumpman
         for gem in self.model.gems:
             pygame.draw.rect(self.screen, WHITE, (gem.x+GEM_WIDTH/3, gem.y, GEM_WIDTH/3, GEM_HEIGHT/3))
             pygame.draw.rect(self.screen, WHITE, (gem.x, gem.y+GEM_HEIGHT/3, GEM_WIDTH/3, GEM_HEIGHT/3))
