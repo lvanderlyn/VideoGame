@@ -26,23 +26,6 @@ Created on Fri Mar  7 16:12:53 2014
 @author: anneubuntu, ddiggins
 """
 
-"""
-----------
-BUGS NEEDING FIXES:
-----------
-
----
-CONTACT
----
-
-* When you're at the top of a ladder (in MODE_ABOVELADDER), and you press down arrow
-just once, you will fall all the way down the ladder and off the bottom of the screen
-
-* When you're right above the bottom of the ladder (in MODE_ONLADDER, so not quite touching
-the bottom platform but very close to it) and you hold down the down arrow, you will fall through
-the platform and offscreen (or just down to the next platform).  This doesn't happen if you go
-slowly.
-"""
 
 #Import necessary modules
 import pygame
@@ -76,16 +59,15 @@ J_WIDTH = 20
 J_LIVES = 6
 PLATFORM_HEIGHT = 10
 LADDER_WIDTH = 30
+BULLET_WIDTH = 10
+BULLET_HEIGHT = 10
 
 #these need to be divisible by 3
 GEM_WIDTH = 15
 GEM_HEIGHT = 15
 
-BULLET_WIDTH = 10
-BULLET_HEIGHT = 10
-
+#more constants
 NUM_GEMS = 10
-
 MOVESPEED = 0.9
 BULLET_SPEED = 2
 
@@ -120,15 +102,18 @@ class Model:
                 fall.play()
             self.jumpman.gravityOff()
             
+        #check if jumpman picked up any gems
         for gem in self.gems:
             if self.inContact(self.jumpman, gem):
                 gemNoise.play()
                 self.gems.remove(gem)
                 self.jumpman.gemCount += 1
                 
+        #try to generate some bullets to be fired
         if random.randint(0,200-(level*15))==0:
             self.bullets.append(self.makeBullet())
         
+        #check if any bullets hit jumpman
         if len(self.bullets)>0:
             for bullet in self.bullets:
                 bullet.update()
@@ -136,6 +121,8 @@ class Model:
                     bulletNoise.play()
                     self.bullets.remove(bullet)
                     self.jumpman.die()
+        
+        #check if any bullets exited the screen
         if len(self.bullets)>0:
             for bullet in self.bullets:
                 if bullet.x > WINDOWWIDTH or bullet.x < 0 or bullet.y > WINDOWHEIGHT or bullet.y < 0:
@@ -151,12 +138,7 @@ class Model:
                 
     def modeFinder(self):
         '''checks what objects the jumpman is in contact with to determine
-        what mode the game is in and thus what movement/gravity is allowed'''
-        bottomInPlatform = False #includes top edge of platform
-        topInLadder = False 
-        bottomInLadder = False #needs to be inclusive - if bottom edge of man touching bottom edge of ladder, tru
-        #or bottom of jumpman touching top edge of ladder        
-        sideInLadder = False #needs to be 50% in  ladder
+        what mode the game is in and thus what movement/gravity is allowed
         
         #1 - UNDERLADDER         
         #bottom in platform and top in ladder and sideInLadder and not bottom in ladder
@@ -175,7 +157,14 @@ class Model:
         
         #6 - UPDOWNLADDER
         #bottom in ladder and top in ladder and bottom in platform
-            
+                    
+        '''
+        bottomInPlatform = False #includes top edge of platform
+        topInLadder = False 
+        bottomInLadder = False #needs to be inclusive - if bottom edge of man touching bottom edge of ladder, tru
+        #or bottom of jumpman touching top edge of ladder        
+        sideInLadder = False #needs to be 50% in  ladder
+        
         for platform in self.platforms:
             xMid = platform.rect.left + (0.5*platform.width) # VERTICAL line
             yMid = platform.rect.top + (0.5*platform.height) #HORIZONTAL line
@@ -249,7 +238,6 @@ class Model:
                             if x_pos in range(toPlatform.x, toPlatform.x+toPlatform.width-LADDER_WIDTH):
                                 possiblePlatforms.append(toPlatform)
                                 goodXPos = x_pos+0
-    #                                print goodXPosi
                 if len(possiblePlatforms) != 0:
                     break#We don't need more chances
 
@@ -292,7 +280,6 @@ class Model:
             if len(self.gems) ==0:
                 self.gems.append(gem)#Creates the first gem
                 i = i-1
-                print i, " first gem" 
 
             else:
                 goodGem = False
@@ -310,7 +297,6 @@ class Model:
                 if goodGem == True:
                     self.gems.append(gem)#Creates the next gem
                     i = i-1
-                    print i, " ",i,"th gem"
     
     def makeBullet(self):
         '''generates a bullet with an arbitrary start/ horizontal/vertical
@@ -320,7 +306,7 @@ class Model:
         y=0
         direction = 0
         if xOrY:
-            leftOrRight = random.randint(0,1)
+            leftOrRight = random.randint(0,1) #decides whether bullet comes from left side of screen or right
             if leftOrRight:
                 x = 0
                 direction = 1
@@ -329,7 +315,7 @@ class Model:
                 direction = -1
             y = random.randint(0, WINDOWHEIGHT)
         else:
-            topOrBottom = random.randint(0,1) #randomly generates number  to assign to y
+            topOrBottom = random.randint(0,1) #decides whether bullet comes from top of screen or bottom
             if topOrBottom:
                 y = 0
                 direction = 1
@@ -340,9 +326,11 @@ class Model:
         return Bullet(x,y,BULLET_WIDTH,BULLET_HEIGHT,xOrY,direction)
 
 class Actor:
-    '''moving objects within the model'''
+    '''moving objects within the model
+        gems, jumpman, and bullets are actors
+    '''
     def __init__(self,x,y,width, height):
-        '''initializes attributes such as postion shared by all actors'''
+        '''initializes position and dimension attributes shared by all actors'''
         self.x = x
         self.y = y
         self.width = width
@@ -352,14 +340,20 @@ class Actor:
         self.vy = 0.0
     
     def update(self):
-        '''updates the actor's position and creates a rectangle object of the
+        '''updates the actor's position and updates the rectangle object of the
         actor'''
         self.x += self.vx
         self.y += self.vy
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
     
-class Jumpman(Actor): #Defines Jumpman the one and only
+class Jumpman(Actor):
+    '''
+    Defines jumpman the one and only
+    '''
     def __init__(self,x,y,width,height, lives):
+        '''
+        all attributes of actor plus the number of lives he has left
+        '''
         Actor.__init__(self,x,y,width, height)
         self.gemCount = 0 #jumpman keeps track of collected gems
         self.lives = lives #also keeps track of lives
@@ -392,7 +386,7 @@ class Jumpman(Actor): #Defines Jumpman the one and only
         self.lives -=1
     
     def respawn(self):
-        '''moves 'new' jumpman to bottom of screen to re-spawn'''
+        '''moves jumpman to bottom of screen to re-spawn'''
         self.lostLife = False
         #i want to put in some kind of death effect so he doesn't just jump to a new spot
         self.x = WINDOWWIDTH/2
@@ -404,7 +398,8 @@ class Jumpman(Actor): #Defines Jumpman the one and only
 class Platform: 
     '''Defines platform class'''
     def __init__(self, x, y, width):
-        '''initializes all platform attributes'''
+        '''initializes all platform attributes
+        doesn't need a height because defined by constant'''
         self.x = x
         self.y = y
         self.width = width
@@ -416,6 +411,7 @@ class Platform:
 class Ladder: 
     '''Defines ladder class'''
     def __init__(self, x, y, height):
+        ''' doesn't need width because defined by comment'''
         self.x = x
         self.y = y
         self.width = LADDER_WIDTH #Width 30px
@@ -428,11 +424,11 @@ class Ladder:
 class Gem(Actor):
     '''defining a subclass for gems'''
     def __init__(self,x,y,width,height):
-        '''initialising with a size'''
+        '''initialising with a size and position'''
         Actor.__init__(self,x,y,width, height)
         
     def update(self):
-        '''update, to see if gem is still there'''
+        '''doesn't do anything but every actor has one'''
         Actor.update(self)
         
     
@@ -470,12 +466,12 @@ class View:
         for ladder in self.model.ladders:
             screen.blit(ladder.image, (ladder.x, ladder.y)) #Draws all of the ladders
         screen.blit(self.model.jumpman.image.convert_alpha(), self.model.jumpman.rect)#Draws our jumpman
-        for gem in self.model.gems:
+        for gem in self.model.gems: #draws gems as our fancy 4-square arrangement
             pygame.draw.rect(self.screen, WHITE, (gem.x+GEM_WIDTH/3, gem.y, GEM_WIDTH/3, GEM_HEIGHT/3))
             pygame.draw.rect(self.screen, WHITE, (gem.x, gem.y+GEM_HEIGHT/3, GEM_WIDTH/3, GEM_HEIGHT/3))
             pygame.draw.rect(self.screen, WHITE, (gem.x+(2*GEM_WIDTH/3), gem.y+GEM_HEIGHT/3, GEM_WIDTH/3, GEM_HEIGHT/3))
             pygame.draw.rect(self.screen, WHITE, (gem.x+GEM_WIDTH/3, gem.y+(2*GEM_HEIGHT/3), GEM_WIDTH/3, GEM_HEIGHT/3))
-        for bullet in self.model.bullets:
+        for bullet in self.model.bullets: #draws bullets
             pygame.draw.rect(self.screen, WHITE, bullet.rect)
             
     def animateDeathtoWhite(self):
@@ -488,10 +484,8 @@ class View:
         pygame.draw.rect(self.screen, BLACK, self.model.jumpman.rect)
         pygame.time.wait(100)
         
-    
-    
     def drawInfo(self, font):
-        '''Displays lives and gem count information'''
+        '''Displays lives and gem count information at top of screen'''
         pygame.draw.rect(self.screen, BLACK, (0,0,WINDOWWIDTH,30))
         label = font.render("LIVES REMAINING: ", 1, WHITE)
         self.screen.blit(label, (10, 10))
@@ -506,16 +500,13 @@ class View:
         label = font.render("Level: "+str(level), 1, (255,255,255))
         self.screen.blit(label,(WINDOWWIDTH/2,WINDOWHEIGHT/2))
 
-
     def gameOver(self, font, level):
         '''displays game over screen when all lives are spent'''
         self.screen.fill(BLACK)
         label = font.render("GAME OVER!", 1, WHITE)
         label2 = font.render("Level: "+str(level), 1, WHITE)
-    
         self.screen.blit(label, (WINDOWWIDTH/2, WINDOWHEIGHT/2))
-        self.screen.blit(label2, (WINDOWWIDTH/2, WINDOWHEIGHT/2+70))
-      
+        self.screen.blit(label2, (WINDOWWIDTH/2, WINDOWHEIGHT/2+70))  
 
 class Controller:
     '''controls the jumpman's motion'''
@@ -524,7 +515,8 @@ class Controller:
         self.model = model
     
     def handleEvent(self, event):
-        '''Defines all scenarios that can happen to jumpman and movements associated with said states'''
+        '''Defines all scenarios that can happen to jumpman and movements associated with said states
+            Takes in arrow keys and WASD input, and spacebar to jump'''
         if event.type == QUIT:
             pygame.quit()
         pressed = pygame.key.get_pressed() #finds keys pressed so multiple input can be taken
@@ -622,15 +614,11 @@ class Controller:
             if pressed[K_SPACE]:
                 self.model.jumpman.jump()
                 jumpNoise.play()
-
-        
-
-            
-        
-
             
 if __name__ == '__main__':
+    '''THE MAIN GAME STUFF!'''
     
+    #initializes sound effect things
     pygame.mixer.pre_init(44100,-16,2,2048)
     pygame.init()
     background = pygame.mixer.Sound('back.wav')
@@ -639,13 +627,17 @@ if __name__ == '__main__':
     walk = pygame.mixer.Sound('walk.wav')
     fall = pygame.mixer.Sound('fall.wav')
     gemNoise = pygame.mixer.Sound('gem.wav')
-    background.play()
+    background.play() #intro music
 
     size = (WINDOWWIDTH,WINDOWHEIGHT)
     screen = pygame.display.set_mode(size, 0, 32)
     pygame.display.set_caption('Jumpman')
+    
+    #initial level and lives
     level = 0
     lives = J_LIVES
+    
+    #two font sizes
     font = pygame.font.SysFont("monospace", 50)
     font2 = pygame.font.SysFont("monospace",20)
     
@@ -653,27 +645,30 @@ if __name__ == '__main__':
     screen.blit(label, (WINDOWWIDTH/2, WINDOWHEIGHT/2))
     pygame.display.update()
     pygame.time.wait(9000)
-    
+
+    #this loop controls the game/gameover state.  runs while jumpman has lives left  
     while(lives>=0):
+        #makes new level
         model = Model(lives,level)
         view = View(model,screen)
         controller = Controller(model)
         view.newLevel(font,level)
         pygame.display.update()
         pygame.time.wait(2500)
-        running = True    
+        running = True
+        #this loop is the running loop within a single game level
         while running:
             for event in pygame.event.get():
                 if event.type == QUIT:
                     running = False
                 controller.handleEvent(event)
             model.update()
-            gameNotYetWon = model.checkIfCollectedAllGems()
+            gameNotYetWon = model.checkIfCollectedAllGems() #checks if all gems collected
             if gameNotYetWon:
-                view.draw()
-                view.drawInfo(font2)
-                if model.jumpman.lostLife:
-                    for i in range(5):
+                view.draw() #draws all the things on screen
+                view.drawInfo(font2) #draws the info bar
+                if model.jumpman.lostLife: 
+                    for i in range(5): #this animates the flashing effect when jumpman dies
                         view.animateDeathtoBlack()
                         pygame.display.update()
                         view.animateDeathtoWhite()
@@ -681,7 +676,7 @@ if __name__ == '__main__':
                     model.jumpman.lostLife = False
                     model.jumpman.respawn()
                     screen.blit(model.jumpman.image.convert_alpha(), model.jumpman.rect)#Draws our jumpman
-            else:
+            else: #if all gems collected
                 level +=1
                 running = False
                 lives = model.jumpman.lives
@@ -689,9 +684,10 @@ if __name__ == '__main__':
                 
             pygame.display.update()
             time.sleep(.001)
-            if model.jumpman.lives == 0:
+            if model.jumpman.lives == 0: #kills game loop if no more lives
                 lives = -1
                 running = False
+    #display gameover and quit
     view.gameOver(font, level)
     pygame.display.update()
     time.sleep(5)
