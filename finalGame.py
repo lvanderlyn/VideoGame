@@ -167,10 +167,12 @@ class Model:
         if pastMode == MODE_FALLING and self.mode != MODE_FALLING:
             if self.jumpman.vy > 1.2: #chosen so that you die if you fall off a platform but not if you jump
                 self.jumpman.die()
+                fall.play()
             self.jumpman.gravityOff()
             
         for gem in self.gems:
             if self.inContact(self.jumpman, gem):
+                gemNoise.play()
                 self.gems.remove(gem)
                 self.jumpman.gemCount += 1
                 
@@ -181,6 +183,7 @@ class Model:
             for bullet in self.bullets:
                 bullet.update()
                 if self.inContact(self.jumpman, bullet):
+                    bulletNoise.play()
                     self.bullets.remove(bullet)
                     self.jumpman.die()
         if len(self.bullets)>0:
@@ -283,7 +286,7 @@ class Model:
         i = 0
         
         for fromPlatform in self.platforms:
-            for chance in range (0,8):          
+            for chance in range (0,15):          
                 possiblePlatforms = []    
                 x_pos = random.randint(fromPlatform.x, fromPlatform.x+fromPlatform.width)              
                 for toPlatform in self.platforms:
@@ -572,11 +575,15 @@ class Controller:
             self.model.jumpman.vy = 0
             if pressed[K_LEFT] or pressed[ord('a')]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_RIGHT] or pressed[ord('d')]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
+                walk.play()
             if pressed[K_UP] or pressed[ord('w')]:
                 self.model.jumpman.vy = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_SPACE]:
+                jumpNoise.play()
                 self.model.jumpman.jump()
         elif self.model.mode == MODE_ABOVELADDER:
             #should be able to move, down, left, right, jump
@@ -584,11 +591,15 @@ class Controller:
             self.model.jumpman.vy = 0
             if pressed[K_LEFT] or pressed[ord('a')]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_RIGHT] or pressed[ord('d')]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
+                walk.play()
             if pressed[K_DOWN] or pressed[ord('s')]:
                 self.model.jumpman.vy = 1.0*MOVESPEED
+                walk.play()
             if pressed[K_SPACE]:
+                jumpNoise.play()
                 self.model.jumpman.jump()
         elif self.model.mode == MODE_ONLADDER:        
             #should be able to move up, down
@@ -596,13 +607,18 @@ class Controller:
             self.model.jumpman.vy = 0
             if pressed[K_LEFT] or pressed[ord('a')]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_RIGHT] or pressed[ord('d')]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
+                walk.play()
             if pressed[K_DOWN] or pressed[ord('s')]:
                 self.model.jumpman.vy = 1.0*MOVESPEED
+                walk.play()
             if pressed[K_UP] or pressed[ord('w')]:
                 self.model.jumpman.vy = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_SPACE]:
+                jumpNoise.play()
                 self.model.jumpman.jump()
         elif self.model.mode == MODE_ONPLATFORM:
             #should be able to move left, right, jump
@@ -610,17 +626,22 @@ class Controller:
             self.model.jumpman.vy = 0
             if pressed[K_LEFT] or pressed[ord('a')]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_RIGHT] or pressed[ord('d')]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
+                walk.play()
             if pressed[K_SPACE]:
+                jumpNoise.play()
                 self.model.jumpman.jump()
         elif self.model.mode == MODE_FALLING:
             #should be able to move left, right
             self.model.jumpman.vx = 0
             if pressed[K_LEFT] or pressed[ord('a')]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_RIGHT] or pressed[ord('d')]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
+                walk.play()
         elif self.model.mode == MODE_UPDOWNLADDER:
             #should be able to move up down left right jump
             self.model.jumpman.vx = 0
@@ -629,14 +650,20 @@ class Controller:
                 return
             if pressed[K_LEFT] or pressed[ord('a')]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_RIGHT] or pressed[ord('d')]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
+                walk.play()
             if pressed[K_UP] or pressed[ord('w')]:
                 self.model.jumpman.vy = -1.0*MOVESPEED
+                walk.play()
             if pressed[K_DOWN] or pressed[ord('s')]:
                 self.model.jumpman.vy = 1.0*MOVESPEED
+                walk.play()
             if pressed[K_SPACE]:
                 self.model.jumpman.jump()
+                jumpNoise.play()
+
         
 
             
@@ -644,7 +671,16 @@ class Controller:
 
             
 if __name__ == '__main__':
+    
+    pygame.mixer.pre_init(44100,-16,2,2048)
     pygame.init()
+    background = pygame.mixer.Sound('back.wav')
+    jumpNoise = pygame.mixer.Sound('jump.wav')
+    bulletNoise = pygame.mixer.Sound('bullet.wav')
+    walk = pygame.mixer.Sound('walk.wav')
+    fall = pygame.mixer.Sound('fall.wav')
+    gemNoise = pygame.mixer.Sound('gem.wav')
+    background.play()
 
     size = (WINDOWWIDTH,WINDOWHEIGHT)
     screen = pygame.display.set_mode(size, 0, 32)
@@ -653,6 +689,12 @@ if __name__ == '__main__':
     lives = J_LIVES
     font = pygame.font.SysFont("monospace", 50)
     font2 = pygame.font.SysFont("monospace",20)
+    
+    label = font.render("JUMPMAN", 1, WHITE)
+    screen.blit(label, (WINDOWWIDTH/2, WINDOWHEIGHT/2))
+    pygame.display.update()
+    pygame.time.wait(9000)
+    
     while(lives>=0):
         model = Model(lives,level)
         view = View(model,screen)
