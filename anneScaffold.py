@@ -116,8 +116,8 @@ MODE_ONPLATFORM = 4
 MODE_FALLING = 5
 MODE_UPDOWNLADDER = 6
 
-WINDOWWIDTH = 400
-WINDOWHEIGHT = 400
+WINDOWWIDTH = 800
+WINDOWHEIGHT = 800
 
 
 # set up the colors
@@ -141,7 +141,7 @@ BULLET_HEIGHT = 10
 
 NUM_GEMS = 10
 
-MOVESPEED = 0.3
+MOVESPEED = 0.8
 BULLET_SPEED = 0.5
 
 class Model:
@@ -242,15 +242,15 @@ class Model:
                     topInLadder = True
                 if ladder.rect.collidepoint(xMid, self.jumpman.rect.bottom):
                     bottomInLadder = True
-        if bottomInPlatform and topInLadder and not bottomInLadder:
-            return MODE_UNDERLADDER
-        if bottomInPlatform and bottomInLadder and not topInLadder:
-            return MODE_ABOVELADDER
-        if bottomInLadder and topInLadder and not bottomInPlatform:
+#        if bottomInPlatform and topInLadder and not bottomInLadder:
+#            return MODE_UNDERLADDER
+#        if bottomInPlatform and bottomInLadder and not topInLadder:
+#            return MODE_ABOVELADDER
+        if bottomInLadder or topInLadder:
             return MODE_ONLADDER
-        if bottomInLadder and topInLadder and bottomInPlatform:
-            return MODE_UPDOWNLADDER
-        if bottomInPlatform and not bottomInLadder and not topInLadder:
+#        if bottomInLadder and topInLadder and bottomInPlatform:
+#            return MODE_UPDOWNLADDER
+        if bottomInPlatform and not topInLadder:
             return MODE_ONPLATFORM
         if not bottomInPlatform and not bottomInLadder and not topInLadder:
             return MODE_FALLING
@@ -586,31 +586,31 @@ class Controller:
         if event.type == QUIT:
             pygame.quit()
         pressed = pygame.key.get_pressed()
-        if self.model.mode == MODE_UNDERLADDER: 
+#        if self.model.mode == MODE_UNDERLADDER: 
             #should be able to move up, left, or right, jump
-            self.model.jumpman.vx = 0
-            self.model.jumpman.vy = 0
-            if pressed[K_LEFT]:
-                self.model.jumpman.vx = -1.0*MOVESPEED
-            if pressed[K_RIGHT]:
-                self.model.jumpman.vx = 1.0*MOVESPEED
-            if pressed[K_UP]:
-                self.model.jumpman.vy = -1.0*MOVESPEED
-            if pressed[K_SPACE]:
-                self.model.jumpman.jump()
-        elif self.model.mode == MODE_ABOVELADDER:
-            #should be able to move, down, left, right, jump
-            self.model.jumpman.vx = 0
-            self.model.jumpman.vy = 0
-            if pressed[K_LEFT]:
-                self.model.jumpman.vx = -1.0*MOVESPEED
-            if pressed[K_RIGHT]:
-                self.model.jumpman.vx = 1.0*MOVESPEED
-            if pressed[K_DOWN]:
-                self.model.jumpman.vy = 1.0*MOVESPEED
-            if pressed[K_SPACE]:
-                self.model.jumpman.jump()
-        elif self.model.mode == MODE_ONLADDER:        
+#            self.model.jumpman.vx = 0
+#            self.model.jumpman.vy = 0
+#            if pressed[K_LEFT]:
+#                self.model.jumpman.vx = -1.0*MOVESPEED
+#            if pressed[K_RIGHT]:
+#                self.model.jumpman.vx = 1.0*MOVESPEED
+#            if pressed[K_UP]:
+#                self.model.jumpman.vy = -1.0*MOVESPEED
+#            if pressed[K_SPACE]:
+#                self.model.jumpman.jump()
+#        elif self.model.mode == MODE_ABOVELADDER:
+#            #should be able to move, down, left, right, jump
+#            self.model.jumpman.vx = 0
+#            self.model.jumpman.vy = 0
+#            if pressed[K_LEFT]:
+#                self.model.jumpman.vx = -1.0*MOVESPEED
+#            if pressed[K_RIGHT]:
+#                self.model.jumpman.vx = 1.0*MOVESPEED
+#            if pressed[K_DOWN]:
+#                self.model.jumpman.vy = 1.0*MOVESPEED
+#            if pressed[K_SPACE]:
+#                self.model.jumpman.jump()
+        if self.model.mode == MODE_ONLADDER:        
             #should be able to move up, down
             self.model.jumpman.vx = 0
             self.model.jumpman.vy = 0
@@ -637,26 +637,28 @@ class Controller:
         elif self.model.mode == MODE_FALLING:
             #should be able to move left, right
             self.model.jumpman.vx = 0
+            if self.model.jumpman.vy < 0:
+                self.model.jumpman.vy = 0
             if pressed[K_LEFT]:
                 self.model.jumpman.vx = -1.0*MOVESPEED
             if pressed[K_RIGHT]:
                 self.model.jumpman.vx = 1.0*MOVESPEED
-        elif self.model.mode == MODE_UPDOWNLADDER:
-            #should be able to move up down left right jump
-            self.model.jumpman.vx = 0
-            self.model.jumpman.vy = 0
-            if event.type != KEYDOWN:
-                return
-            if pressed[K_LEFT]:
-                self.model.jumpman.vx = -1.0*MOVESPEED
-            if pressed[K_RIGHT]:
-                self.model.jumpman.vx = 1.0*MOVESPEED
-            if pressed[K_UP]:
-                self.model.jumpman.vy = -1.0*MOVESPEED
-            if pressed[K_DOWN]:
-                self.model.jumpman.vy = 1.0*MOVESPEED
-            if pressed[K_SPACE]:
-                self.model.jumpman.jump()
+#        elif self.model.mode == MODE_UPDOWNLADDER:
+#            #should be able to move up down left right jump
+#            self.model.jumpman.vx = 0
+#            self.model.jumpman.vy = 0
+#            if event.type != KEYDOWN:
+#                return
+#            if pressed[K_LEFT]:
+#                self.model.jumpman.vx = -1.0*MOVESPEED
+#            if pressed[K_RIGHT]:
+#                self.model.jumpman.vx = 1.0*MOVESPEED
+#            if pressed[K_UP]:
+#                self.model.jumpman.vy = -1.0*MOVESPEED
+#            if pressed[K_DOWN]:
+#                self.model.jumpman.vy = 1.0*MOVESPEED
+#            if pressed[K_SPACE]:
+#                self.model.jumpman.jump()
         
 
             
