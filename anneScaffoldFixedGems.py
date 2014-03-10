@@ -286,30 +286,18 @@ class Model:
         numLadders = 5
         i = 0
         
-        addition = 0
-        #print "We are in the function!"
-        
-
         for fromPlatform in self.platforms:
-
-            possiblePlatforms = []
-            x_pos = random.randint(fromPlatform.x, fromPlatform.x+fromPlatform.width)              
-            for toPlatform in self.platforms:
-                #print "initial toPlatformx = ", toPlatform.x                                                               
-                if (toPlatform.y - fromPlatform.y) <= (4*h):
-                    if toPlatform.y>fromPlatform.y:
-                        #print "fromPlatformY = ", fromPlatform.y, "toPlatform = ", toPlatform.y
-                        #print "x_pos = ", x_pos
-                        if x_pos in range(toPlatform.x, toPlatform.x+toPlatform.width-LADDER_WIDTH):
-                            possiblePlatforms.append(toPlatform)
-                            
-                            #print toPlatform.x
-                            #print "x_pos = ", x_pos
-                            goodXPos = x_pos+0
-#                                print goodXPos
-#
-#            for poss in possiblePlatforms:
-#                print poss.x
+            for chance in range (0,4):          
+                possiblePlatforms = []    
+                x_pos = random.randint(fromPlatform.x, fromPlatform.x+fromPlatform.width)              
+                for toPlatform in self.platforms:
+                        if toPlatform.y>fromPlatform.y:
+                            if x_pos in range(toPlatform.x, toPlatform.x+toPlatform.width-LADDER_WIDTH):
+                                possiblePlatforms.append(toPlatform)
+                                goodXPos = x_pos+0
+    #                                print goodXPos
+                if len(possiblePlatforms) != 0:
+                    break
 
             if len(possiblePlatforms) != 0:
                 p = random.randint(0,len(possiblePlatforms)-1)
@@ -333,14 +321,10 @@ class Model:
                             goodLadder = True
                     if goodLadder == True:
                         self.ladders.append(ladder)
-                        #print "created ladder"
 
                 else:
                     self.ladders.append(ladder)
-                    #print "found first ladder"
-            else:
-                print "IMPOSSIBLE!"
-            
+        
     def genGems(self):
 
         i = NUM_GEMS
@@ -353,7 +337,7 @@ class Model:
             if len(self.gems) ==0:
                 self.gems.append(gem)
                 i = i-1
-                print i, " first gem" 
+                #print i, " first gem" 
 
             else:
                 goodGem = False
@@ -366,7 +350,7 @@ class Model:
                 if goodGem == True:
                     self.gems.append(gem)
                     i = i-1
-                    print i, " ",i,"th gem"
+                    #print i, " ",i,"th gem"
                     
             
     def makeBullet(self):
