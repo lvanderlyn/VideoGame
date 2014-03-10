@@ -229,7 +229,7 @@ class Model:
         i = 0
         #runs through all the platforms on the screen
         for fromPlatform in self.platforms:
-            for chance in range (0,15): #Gives each platform 15 tries to find possible ladders         
+            for chance in range (0,100): #Gives each platform 15 tries to find possible ladders         
                 possiblePlatforms = []    
                 x_pos = random.randint(fromPlatform.x, fromPlatform.x+fromPlatform.width) #defines a starting x position          
                 #Checks for platforms that we could potentially build ladders to                
@@ -491,8 +491,8 @@ class View:
         self.screen.blit(label, (10, 10))
         for i in range(self.model.jumpman.lives):
             pygame.draw.rect(self.screen, WHITE, (210+(15*i),16,10,10))
-        label2 = font.render("GEMS COLLECTED: "+str(self.model.jumpman.gemCount),1,WHITE)
-        self.screen.blit(label2, (WINDOWWIDTH - 250,10))
+        label2 = font.render("GEMS COLLECTED: "+str(self.model.jumpman.gemCount)+ " / "+str(self.model.levelGems+1),1,WHITE)
+        self.screen.blit(label2, (WINDOWWIDTH - 270,10))
         
     def newLevel(self,font,level):
         '''displays level screen between levels'''
@@ -677,6 +677,7 @@ if __name__ == '__main__':
                     model.jumpman.respawn()
                     screen.blit(model.jumpman.image.convert_alpha(), model.jumpman.rect)#Draws our jumpman
             else: #if all gems collected
+                pygame.time.wait(500)
                 level +=1
                 running = False
                 lives = model.jumpman.lives
