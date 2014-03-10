@@ -27,36 +27,9 @@ Created on Fri Mar  7 16:12:53 2014
 """
 
 """
-______________________________________________________________________
-COMMENTS ON THE CODE
-PLEASE READ AND UPDATE
-______________________________________________________________________
-
-
 ----------
 BUGS NEEDING FIXES:
 ----------
-
----
-JUMPING
----
-
-* When you press jump, it jumps vertically.  However, the problem is, when you're
-holing down left or right and then try to press jump, it stops you moving horizontally
-and only jumps up instead of in a parabola.
-
-* You can press jump and then press left or right to jump in a parabola.  However, 
-if you do this, and press left or right even once mid-jump, when you come down, the man
-doesn't stop moving left/right but in fact keeps going until you press another key
-
----
-LADDERS
----
-
-* Ladders are still generating on top of one another
-
-* Some laddders are ending up spanning from one platform to the same platform.  Need
-some code so that if fromLadder == toLadder, then no.
 
 ---
 CONTACT
@@ -69,46 +42,16 @@ just once, you will fall all the way down the ladder and off the bottom of the s
 the bottom platform but very close to it) and you hold down the down arrow, you will fall through
 the platform and offscreen (or just down to the next platform).  This doesn't happen if you go
 slowly.
-
----
-GEMS
----
-
-* Despite my best efforts and what seems obvious that the code should be doing, some Gems
-are generating on top of each other, and some gems are generating in the middle of the bottom 
-platform, instead of on top of it.  This shouldn't be happening given the code and I can't
-figure out why it is.
-
-_________________________________________________________________________
----------
-THINGS TO BE IMPLEMENTED
----------
-
-* Bullets
-    - Type 1 bullet:
-        This bullet has one definite coordinate (x or y) and one changing one, so
-        it travels in a straight line at a random point across the screen
-    - Type 2 bullet:
-        This bullet travels in a straight line across the screen, at half speed or 
-        so of a type 1 bullet.  Then, when its coordinate (x or y) is on the same line
-        as jumpman, it "sees" him and goes full speed in the direction of the jumpman
-* Jumpman needs to have lives
-    - When he runs out of lives, quit to gameover screen
-* Jumpman needs to die
-    - When he is falling past a certain velocity
-    - When he gets hit by a bullet
-    - When he goes offscreen
-    
-
-__________________________________________________________________________
 """
+
+#Import necessary modules
 import pygame
 import math
 from pygame.locals import *
 import random
 import time
 
-
+#Set up game mode constants
 MODE_UNDERLADDER = 1
 MODE_ABOVELADDER = 2
 MODE_ONLADDER = 3
@@ -116,6 +59,7 @@ MODE_ONPLATFORM = 4
 MODE_FALLING = 5
 MODE_UPDOWNLADDER = 6
 
+#set window constants
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 800
 
@@ -126,6 +70,7 @@ GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 
+#set size constants
 J_HEIGHT = 40
 J_WIDTH = 20
 J_LIVES = 6
@@ -145,7 +90,10 @@ MOVESPEED = 0.9
 BULLET_SPEED = 2
 
 class Model:
+    """Set up all model objects"""
     def __init__(self, jumpmanLives, level):
+        '''set up things all model objects need, including level so lives 
+        can be maintained between levels'''
         self.jumpman = Jumpman(WINDOWWIDTH/2.0, WINDOWHEIGHT-PLATFORM_HEIGHT - J_HEIGHT, J_WIDTH, J_HEIGHT, jumpmanLives)
         self.platforms = []
         self.genPlatforms()
@@ -159,6 +107,8 @@ class Model:
         self.level = level
     
     def update(self):
+        '''updates model to reflect changes in things like jumpman position 
+        and gravity as well as gem count and lives'''
         self.jumpman.update()
         pastMode = self.mode
         self.mode = self.modeFinder()
@@ -176,7 +126,7 @@ class Model:
                 self.gems.remove(gem)
                 self.jumpman.gemCount += 1
                 
-        if random.randint(0,200)==0:
+        if random.randint(0,200-(level*15))==0:
             self.bullets.append(self.makeBullet())
         
         if len(self.bullets)>0:
@@ -192,39 +142,40 @@ class Model:
                     self.bullets.remove(bullet)
     
     def checkIfCollectedAllGems(self):
+        '''checks if all gems are collected so that the game can move on to
+        the next level'''
         if self.jumpman.gemCount == self.levelGems + 1:
             return False
         else:
             return True
                 
     def modeFinder(self):
+        '''checks what objects the jumpman is in contact with to determine
+        what mode the game is in and thus what movement/gravity is allowed'''
         bottomInPlatform = False #includes top edge of platform
         topInLadder = False 
         bottomInLadder = False #needs to be inclusive - if bottom edge of man touching bottom edge of ladder, tru
         #or bottom of jumpman touching top edge of ladder        
         sideInLadder = False #needs to be 50% in  ladder
         
-        """
-        1 - UNDERLADDER         
-        bottom in platform and top in ladder and sideInLadder and not bottom in ladder
+        #1 - UNDERLADDER         
+        #bottom in platform and top in ladder and sideInLadder and not bottom in ladder
         
-        2 - ABOVELADDER
-        bottom in platform and bottom in ladder and not top in ladder and side in ladder
+        #2 - ABOVELADDER
+        #bottom in platform and bottom in ladder and not top in ladder and side in ladder
         
-        3 - ONLADDER
-        bottom in ladder and bottom not in platform
+        #3 - ONLADDER
+        #bottom in ladder and bottom not in platform
     
+        #4 -  ONPLATFROM
+        #bottom in platform and not bottom in ladder
         
-        4 -  ONPLATFROM
-        bottom in platform and not bottom in ladder
+        #5 - FALLING
+        #not any of above
         
-        5 - FALLING
-        not any of above
-        
-        6 - UPDOWNLADDER
-        bottom in ladder and top in ladder and bottom in platform
-        """
-        
+        #6 - UPDOWNLADDER
+        #bottom in ladder and top in ladder and bottom in platform
+            
         for platform in self.platforms:
             xMid = platform.rect.left + (0.5*platform.width) # VERTICAL line
             yMid = platform.rect.top + (0.5*platform.height) #HORIZONTAL line
@@ -245,6 +196,7 @@ class Model:
                     topInLadder = True
                 if ladder.rect.collidepoint(xMid, self.jumpman.rect.bottom):
                     bottomInLadder = True
+        #Based on the above comment these seperate contact into modes
         if bottomInPlatform and topInLadder and not bottomInLadder:
             return MODE_UNDERLADDER
         if bottomInPlatform and bottomInLadder and not topInLadder:
@@ -259,11 +211,13 @@ class Model:
             return MODE_FALLING
         
     
-    def inContact(self, jumpman, other):#Not done yet either
+    def inContact(self, jumpman, other):
+        '''function that checks if objects collide to determine bullet kill 
+        or gem collection'''
         return jumpman.rect.colliderect(other.rect)
     
     def genPlatforms(self):
-        #Generates platforms depending of windowheight/width    
+        '''function for randomly generating platforms for the model'''
         numLayers  = int(math.ceil(WINDOWHEIGHT/(2.0*J_HEIGHT))) #Number of layers of platforms allowed
         h = WINDOWHEIGHT/numLayers
         initPlat = Platform(0, WINDOWHEIGHT-PLATFORM_HEIGHT, WINDOWWIDTH)
@@ -271,12 +225,12 @@ class Model:
         for i in range(0,10):
             y = random.randint(1, numLayers)*h
             width = 200 #change this to make variable widths
-            x = random.randint(0,WINDOWWIDTH-width)           
+            x = random.randint(0,WINDOWWIDTH-width)#Picks a random starting x position           
             plat = Platform(x,y,width)
             self.platforms.append(plat)
               
     def genLadders(self): 
-        #Generates ladders depending on the location of the platforms
+        '''Uses the location of platforms to psuedo-randomly generate ladders'''
         numLayers = math.ceil(WINDOWHEIGHT/(2.0*J_HEIGHT))
         h = WINDOWHEIGHT/numLayers
         height = 0
@@ -284,11 +238,12 @@ class Model:
         y_coor = 0
         numLadders = 5
         i = 0
-        
+        #runs through all the platforms on the screen
         for fromPlatform in self.platforms:
-            for chance in range (0,15):          
+            for chance in range (0,15): #Gives each platform 15 tries to find possible ladders         
                 possiblePlatforms = []    
-                x_pos = random.randint(fromPlatform.x, fromPlatform.x+fromPlatform.width)              
+                x_pos = random.randint(fromPlatform.x, fromPlatform.x+fromPlatform.width) #defines a starting x position          
+                #Checks for platforms that we could potentially build ladders to                
                 for toPlatform in self.platforms:
                         if toPlatform.y>fromPlatform.y:
                             if x_pos in range(toPlatform.x, toPlatform.x+toPlatform.width-LADDER_WIDTH):
@@ -296,15 +251,15 @@ class Model:
                                 goodXPos = x_pos+0
     #                                print goodXPosi
                 if len(possiblePlatforms) != 0:
-                    break
+                    break#We don't need more chances
 
             if len(possiblePlatforms) != 0:
-                p = random.randint(0,len(possiblePlatforms)-1)
+                p = random.randint(0,len(possiblePlatforms)-1)#picks a random end platform
                 endPlatform = possiblePlatforms[p]
-                ladder = Ladder(goodXPos, fromPlatform.y, endPlatform.y - fromPlatform.y)
+                ladder = Ladder(goodXPos, fromPlatform.y, endPlatform.y - fromPlatform.y)#Generates a ladder
 
 
-                if len(self.ladders) > 0:
+                if len(self.ladders) > 0:#Checks the other ladders in existence for overlaps
                     goodLadder = False                
                     for j in range (len(self.ladders)):
                         lad = self.ladders[j]
@@ -319,28 +274,29 @@ class Model:
                         else:
                             goodLadder = True
                     if goodLadder == True:
-                        self.ladders.append(ladder)
+                        self.ladders.append(ladder)#Puts the ladder in
 
                 else:
-                    self.ladders.append(ladder)
+                    self.ladders.append(ladder)#Creates the first ladder
         
     def genGems(self):
-
+        '''using similar logic to the above, randomly generates gems, trying
+        to prevent overlapping'''
         i = self.levelGems
         while i>=0:
-            p = random.randint(0,len(self.platforms)-1)
+            p = random.randint(0,len(self.platforms)-1)#Picks a random platform
             platform = self.platforms[p]
-            x_pos = random.randint(platform.x, (platform.x + platform.width - (GEM_WIDTH/3)))
-            gem = Gem(x_pos-GEM_WIDTH, platform.y-GEM_HEIGHT, GEM_WIDTH, GEM_HEIGHT)
+            x_pos = random.randint(platform.x, (platform.x + platform.width - (GEM_WIDTH/3)))#Picks a random starting x position
+            gem = Gem(x_pos-GEM_WIDTH, platform.y-GEM_HEIGHT, GEM_WIDTH, GEM_HEIGHT)#Creates a possible gem at that position
             
             if len(self.gems) ==0:
-                self.gems.append(gem)
+                self.gems.append(gem)#Creates the first gem
                 i = i-1
                 print i, " first gem" 
 
             else:
                 goodGem = False
-                for allGems in self.gems:
+                for allGems in self.gems:#Checks the rest of the gems for overlaps
                     if (gem.y > allGems.y+allGems.height):
                         goodGem = True
                     if (gem.x >= allGems.x) and (gem.x < (allGems.x + GEM_WIDTH)):
@@ -352,11 +308,13 @@ class Model:
                     else:
                         goodGem = True                        
                 if goodGem == True:
-                    self.gems.append(gem)
+                    self.gems.append(gem)#Creates the next gem
                     i = i-1
                     print i, " ",i,"th gem"
     
     def makeBullet(self):
+        '''generates a bullet with an arbitrary start/ horizontal/vertical
+        direction'''
         xOrY = random.randint(0,1) #0 = False = traveling vertical, 1=True=traveling horizontal
         x=0
         y=0
@@ -371,7 +329,7 @@ class Model:
                 direction = -1
             y = random.randint(0, WINDOWHEIGHT)
         else:
-            topOrBottom = random.randint(0,1)
+            topOrBottom = random.randint(0,1) #randomly generates number  to assign to y
             if topOrBottom:
                 y = 0
                 direction = 1
@@ -382,7 +340,9 @@ class Model:
         return Bullet(x,y,BULLET_WIDTH,BULLET_HEIGHT,xOrY,direction)
 
 class Actor:
+    '''moving objects within the model'''
     def __init__(self,x,y,width, height):
+        '''initializes attributes such as postion shared by all actors'''
         self.x = x
         self.y = y
         self.width = width
@@ -392,6 +352,8 @@ class Actor:
         self.vy = 0.0
     
     def update(self):
+        '''updates the actor's position and creates a rectangle object of the
+        actor'''
         self.x += self.vx
         self.y += self.vy
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
@@ -399,32 +361,38 @@ class Actor:
 class Jumpman(Actor): #Defines Jumpman the one and only
     def __init__(self,x,y,width,height, lives):
         Actor.__init__(self,x,y,width, height)
-        self.gemCount = 0
-        self.lives = lives
-        self.image = pygame.image.load("Jumpman.png")
+        self.gemCount = 0 #jumpman keeps track of collected gems
+        self.lives = lives #also keeps track of lives
+        self.image = pygame.image.load("Jumpman.png") #jumpman graphic
         transcolor = BLACK
         self.image.set_colorkey(transcolor)
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.lostLife = False
     
     def update(self):
+        '''updates position if the jumpman is still within the play window'''
         if self.rect.left + self.vx >= 0 and self.rect.right + self.vx <= WINDOWWIDTH and self.rect.bottom + self.vy <= WINDOWHEIGHT-5:
             Actor.update(self)
 
     def jump(self):
+        '''causes the jumpman to jump up'''
         self.vy -=0.85 #fiddle with actual number, was selected arbitrarily. it felt GOOD
     
     def gravityOn(self):
+        '''a constant increase on velocity to simulate gravity'''
         self.vy += 0.01 #selected randomly, can change
         
     def gravityOff(self):
+        '''turns gravity off because should not affect jumpman on a ladder/platform'''
         self.vy = 0.0 #selected randomly, can change
     
     def die(self):
+        '''causes jumpman to lose a life'''
         self.lostLife = True
         self.lives -=1
     
     def respawn(self):
+        '''moves 'new' jumpman to bottom of screen to re-spawn'''
         self.lostLife = False
         #i want to put in some kind of death effect so he doesn't just jump to a new spot
         self.x = WINDOWWIDTH/2
@@ -433,8 +401,10 @@ class Jumpman(Actor): #Defines Jumpman the one and only
         self.vy = 0
         
         
-class Platform: #Defines platform class
+class Platform: 
+    '''Defines platform class'''
     def __init__(self, x, y, width):
+        '''initializes all platform attributes'''
         self.x = x
         self.y = y
         self.width = width
@@ -443,7 +413,8 @@ class Platform: #Defines platform class
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.image = pygame.transform.scale(image, (self.width, self.height))
         
-class Ladder: #Defines ladder class
+class Ladder: 
+    '''Defines ladder class'''
     def __init__(self, x, y, height):
         self.x = x
         self.y = y
@@ -455,15 +426,20 @@ class Ladder: #Defines ladder class
         self.image = pygame.transform.scale(image, (self.width, self.height))
         
 class Gem(Actor):
+    '''defining a subclass for gems'''
     def __init__(self,x,y,width,height):
+        '''initialising with a size'''
         Actor.__init__(self,x,y,width, height)
         
     def update(self):
+        '''update, to see if gem is still there'''
         Actor.update(self)
         
     
 class Bullet(Actor):
+    '''defines bullet subclass'''
     def __init__(self,x,y,width,height, xOrY, posOrNeg):
+        '''initializes bullets with things like size and speed'''
         #xOrY is true if in x direction, false if negative direction
         #posOrNeg is 1 if traveling in increasing x or y, negative if decreasing
         Actor.__init__(self,x,y,width,height)
@@ -475,44 +451,19 @@ class Bullet(Actor):
             self.vy = BULLET_SPEED*posOrNeg
     
     def update(self):
+        '''updates position of bullet based on Actor update'''
         Actor.update(self)
-        
-class Type2Bullet(Bullet):
-    def __init__(self,x,y,width,height,xOrY, posOrNeg):
-        Bullet.__init__(x,y,width,height,xOrY, posOrNeg)
-        if xOrY:
-            self.vx = (BULLET_SPEED*posOrNeg)/3.0
-            self.vy = 0.0
-        else:
-            self.vx = 0.0
-            self.vy = (BULLET_SPEED*posOrNeg)/3.0
-        
-    
-    def update(self):
-        Bullet.update(self)
-        
-    def seesJumpman(self,jumpman):
-        #returns a tuple (sees, xOrY, direction)
-        if self.x in range(jumpman.x, jumpman.x + J_WIDTH):
-            if self.y > jumpman.y:
-                return (True, False, -1.0)
-            else:
-                return (True, False, 1.0)
-        elif self.y in range(jumpman.y, jumpman.y + J_HEIGHT):
-            if self.x > jumpman.x:
-                return (True, True, -1.0)
-            else:
-                return (True, True, 1.0)
-        else:
-            return (False, True, 1.0)
-    
+            
     
 class View:
-    def __init__(self, model, screen): #View contains model and screen
+    '''veiw class controls window display'''
+    def __init__(self, model, screen): 
+        '''View contains model and screen'''
         self.model = model
         self.screen = screen
         
     def draw(self):
+        '''draws all the model objects so they appear in the window'''
         self.screen.fill(BLACK) #Makes screen bg black
         for platform in self.model.platforms:
             screen.blit(platform.image, (platform.x, platform.y)) #Draws all of the platforms
@@ -528,16 +479,19 @@ class View:
             pygame.draw.rect(self.screen, WHITE, bullet.rect)
             
     def animateDeathtoWhite(self):
+        '''flashes jumpman to original appearence'''
         screen.blit(self.model.jumpman.image.convert_alpha(), self.model.jumpman.rect)
         pygame.time.wait(100)
         
     def animateDeathtoBlack(self):
+        '''flashes jumpman black in death'''
         pygame.draw.rect(self.screen, BLACK, self.model.jumpman.rect)
         pygame.time.wait(100)
         
     
     
     def drawInfo(self, font):
+        '''Displays lives and gem count information'''
         pygame.draw.rect(self.screen, BLACK, (0,0,WINDOWWIDTH,30))
         label = font.render("LIVES REMAINING: ", 1, WHITE)
         self.screen.blit(label, (10, 10))
@@ -547,12 +501,14 @@ class View:
         self.screen.blit(label2, (WINDOWWIDTH - 250,10))
         
     def newLevel(self,font,level):
+        '''displays level screen between levels'''
         self.screen.fill(BLACK)
         label = font.render("Level: "+str(level), 1, (255,255,255))
         self.screen.blit(label,(WINDOWWIDTH/2,WINDOWHEIGHT/2))
 
 
     def gameOver(self, font, level):
+        '''displays game over screen when all lives are spent'''
         self.screen.fill(BLACK)
         label = font.render("GAME OVER!", 1, WHITE)
         label2 = font.render("Level: "+str(level), 1, WHITE)
@@ -562,13 +518,16 @@ class View:
       
 
 class Controller:
+    '''controls the jumpman's motion'''
     def __init__(self,model):
+        '''initializes the model'''
         self.model = model
     
-    def handleEvent(self, event): #Defines all scenarios that can happen to jumpman and movements associated with said states
+    def handleEvent(self, event):
+        '''Defines all scenarios that can happen to jumpman and movements associated with said states'''
         if event.type == QUIT:
             pygame.quit()
-        pressed = pygame.key.get_pressed()
+        pressed = pygame.key.get_pressed() #finds keys pressed so multiple input can be taken
         if self.model.mode == MODE_UNDERLADDER: 
             #should be able to move up, left, or right, jump
             self.model.jumpman.vx = 0
