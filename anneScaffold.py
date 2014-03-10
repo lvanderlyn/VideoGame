@@ -261,16 +261,18 @@ class Model:
     
     def genPlatforms(self):
         #Generates platforms depending of windowheight/width    
-        numLayers  = int(math.ceil(WINDOWHEIGHT/(2.0*J_HEIGHT))) #Number of layers of platforms allowed
+        numLayers  = int(math.ceil(WINDOWHEIGHT/(3.0*J_HEIGHT))) #Number of layers of platforms allowed
         h = WINDOWHEIGHT/numLayers
         initPlat = Platform(0, WINDOWHEIGHT-PLATFORM_HEIGHT, WINDOWWIDTH)
         self.platforms.append(initPlat)
-        for i in range(0,10):
-            y = random.randint(1, numLayers)*h
-            width = 200 #change this to make variable widths
-            x = random.randint(0,WINDOWWIDTH-width)           
-            plat = Platform(x,y,width)
-            self.platforms.append(plat)
+        for i in range(0,numLayers):
+            for j in range(0,3):
+                y = i*h + 2*J_HEIGHT
+                width = 200 #change this to make variable widths
+                x = random.randint(0,WINDOWWIDTH-width)           
+                plat = Platform(x,y,width)
+                if (WINDOWHEIGHT-plat.y > J_HEIGHT):
+                    self.platforms.append(plat)
        
             
     
@@ -282,61 +284,94 @@ class Model:
         x_pos = 0
         y_coor = 0
         numLadders = 5
-        i = 0       
+        i = 0
         
-       
+        addition = 0
+        #print "We are in the function!"
+        
+
         for fromPlatform in self.platforms:
-            r = random.randint(0,2)
+
             possiblePlatforms = []
-            if r==0 or r==1: #2/3 chance of having a ladder going down              
-                for toPlatform in self.platforms:
-                    for i in range(random.randint(0,8)):#8 chances to generate ladder
-                        x_pos = random.randint(fromPlatform.x, (fromPlatform.x + fromPlatform.width-LADDER_WIDTH)) #choose random x position on platform                                               
-                        if (x_pos >= toPlatform.x) and (x_pos <= toPlatform.x+LADDER_WIDTH):
-                            print "x_pos = ", x_pos, " toPlatform.x = ", toPlatform.x
-                            if toPlatform.y>fromPlatform.y:
-                                if toPlatform.y - fromPlatform.y < 3*h and (toPlatform.y - fromPlatform.y) > PLATFORM_HEIGHT:
-                                    possiblePlatforms.append(toPlatform)
-                                    goodXPos = x_pos+0
-                                    break     
-                if len(possiblePlatforms) != 0:
-                    p = random.randint(0,len(possiblePlatforms)-1)
-                    endPlatform = possiblePlatforms[p]
-                    ladder = Ladder(goodXPos, fromPlatform.y, endPlatform.y - fromPlatform.y)
-                    if len(self.ladders) > 0:
-                        goodLadder = False                  
-                        for j in range (len(self.ladders)):
-                            lad = self.ladders[j]
-                            if (ladder.x >= lad.x) and (ladder.x < (lad.x + LADDER_WIDTH)):
-                                goodLadder = False
-                                break
-                            if (ladder.x <= lad.x) and (ladder.x+LADDER_WIDTH in range (lad.x, lad.x+LADDER_WIDTH)):
-                                goodLadder = False
-                                break
-                            else:
-                                goodLadder = True
-                        if goodLadder == True:
-                            self.ladders.append(ladder)
-                            print "created ladder"
-                    else:
+            x_pos = random.randint(fromPlatform.x, fromPlatform.x+fromPlatform.width)              
+            for toPlatform in self.platforms:
+                #print "initial toPlatformx = ", toPlatform.x                                                               
+                if (toPlatform.y - fromPlatform.y) <= (4*h):
+                    if toPlatform.y>fromPlatform.y:
+                        #print "fromPlatformY = ", fromPlatform.y, "toPlatform = ", toPlatform.y
+                        #print "x_pos = ", x_pos
+                        if x_pos in range(toPlatform.x, toPlatform.x+toPlatform.width-LADDER_WIDTH):
+                            possiblePlatforms.append(toPlatform)
+                            
+                            #print toPlatform.x
+                            #print "x_pos = ", x_pos
+                            goodXPos = x_pos+0
+#                                print goodXPos
+#
+#            for poss in possiblePlatforms:
+#                print poss.x
+
+            if len(possiblePlatforms) != 0:
+                p = random.randint(0,len(possiblePlatforms)-1)
+                endPlatform = possiblePlatforms[p]
+                ladder = Ladder(goodXPos, fromPlatform.y, endPlatform.y - fromPlatform.y)
+
+
+                if len(self.ladders) > 0:
+                    goodLadder = False                
+                    for j in range (len(self.ladders)):
+                        lad = self.ladders[j]
+                        if (ladder.y > lad.y+lad.height):
+                            goodLadder = True
+                        if (ladder.x >= lad.x) and (ladder.x < (lad.x + LADDER_WIDTH)):
+                            goodLadder = False
+                            break
+                        if (ladder.x <= lad.x) and (ladder.x+LADDER_WIDTH in range (lad.x, lad.x+LADDER_WIDTH)):
+                            goodLadder = False
+                            break
+                        else:
+                            goodLadder = True
+                    if goodLadder == True:
                         self.ladders.append(ladder)
-                        print "found first ladder"
+                        #print "created ladder"
+
+                else:
+                    self.ladders.append(ladder)
+                    #print "found first ladder"
+            else:
+                print "IMPOSSIBLE!"
             
     def genGems(self):
         
-        for i in range(NUM_GEMS):
-            foundEmptySpace = False
-            platform = Platform(0,0,0)
-            while(foundEmptySpace==False):
-                platform = self.platforms[random.randint(0,len(self.platforms)-1)]
-                x_pos = random.randint(platform.x, (platform.x + platform.width - (GEM_WIDTH/3)))
-                if len(self.gems)==0:
-                    foundEmptySpace = True
-                for gem in self.gems:
-                    if not (x_pos in range(gem.x, gem.x + GEM_WIDTH)):
-                        foundEmptySpace = True
-            y_pos = platform.y - GEM_HEIGHT
-            self.gems.append(Gem(x_pos,y_pos, GEM_WIDTH, GEM_HEIGHT))
+#        for i in range(NUM_GEMS):
+#            foundEmptySpace = False
+#            platform = Platform(0,0,0)
+#            while(foundEmptySpace==False):
+#                platform = self.platforms[random.randint(0,len(self.platforms)-1)]
+#                x_pos = random.randint(platform.x, (platform.x + platform.width - (GEM_WIDTH/3)))
+#                if len(self.gems)==0:
+#                    foundEmptySpace = True
+#                for gem in self.gems:
+#                    if not (x_pos in range(gem.x, gem.x + GEM_WIDTH)):
+#                        foundEmptySpace = True
+#            y_pos = platform.y - GEM_HEIGHT
+#            self.gems.append(Gem(x_pos,y_pos, GEM_WIDTH, GEM_HEIGHT))
+        
+        i = NUM_GEMS
+        while i>0:
+            p = random.randint(0,len(self.platforms))
+            platform = self.platforms[p]
+            x_pos = random.randint(platform.x, (platform.x + platform.width - (GEM_WIDTH/3)))
+            gem = Gem(x_pos-GEM_WIDTH, platform.y-GEM_HEIGHT, GEM_WIDTH, GEM_HEIGHT)
+            if len(self.gems) ==0:
+                self.gems.append(gem)
+                i -= 1
+            else:
+                for allGems in self.gems:
+                    if not(gem.x in range(allGems.x, allGems.x + GEM_WIDTH)):
+                        self.gems.append(gem)
+                        i -= 1
+                    
             
     def makeBullet(self):
         xOrY = random.randint(0,1) #0 = False = traveling vertical, 1=True=traveling horizontal
