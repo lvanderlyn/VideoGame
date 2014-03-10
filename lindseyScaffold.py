@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sun Mar  9 15:24:50 2014
+
+@author: ragspiano
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Sun Mar  9 13:29:57 2014
 
 @author: koenigin
@@ -258,8 +265,8 @@ class Model:
         initPlat = Platform(0, WINDOWHEIGHT-PLATFORM_HEIGHT, WINDOWWIDTH)
         self.platforms.append(initPlat)
         for i in range(0,10):
-            y = random.randint(0, numLayers)*h + h
-            width = random.randint(50,150) #change this to make variable widths
+            y = random.randint(1, numLayers)*h
+            width = 200 #change this to make variable widths
             x = random.randint(0,WINDOWWIDTH-width)           
             plat = Platform(x,y,width)
             self.platforms.append(plat)
@@ -273,43 +280,46 @@ class Model:
         height = 0
         x_pos = 0
         y_coor = 0
-
+        numLadders = 5
+        i = 0       
+        
+       
         for fromPlatform in self.platforms:
             r = random.randint(0,2)
             possiblePlatforms = []
-            #print "do we try to build ladder? ", r
             if r==0 or r==1: #2/3 chance of having a ladder going down              
                 for toPlatform in self.platforms:
-                    if not (toPlatform==fromPlatform):
-                        for i in range(random.randint(0,4)):#generate 0 to 8 ladders
-                            x_pos = random.randint(fromPlatform.x, (fromPlatform.x + fromPlatform.width-LADDER_WIDTH)) #choose random x position on platform                                               
-                            if x_pos in range(toPlatform.x, toPlatform.x + toPlatform.width-LADDER_WIDTH):
-                                if toPlatform.y>fromPlatform.y:
+                    for i in range(random.randint(0,8)):#8 chances to generate ladder
+                        x_pos = random.randint(fromPlatform.x, (fromPlatform.x + fromPlatform.width-LADDER_WIDTH)) #choose random x position on platform                                               
+                        if (x_pos >= toPlatform.x) and (x_pos <= toPlatform.x+LADDER_WIDTH):
+                            print "x_pos = ", x_pos, " toPlatform.x = ", toPlatform.x
+                            if toPlatform.y>fromPlatform.y:
+                                if toPlatform.y - fromPlatform.y < 3*h and (toPlatform.y - fromPlatform.y) > PLATFORM_HEIGHT:
                                     possiblePlatforms.append(toPlatform)
-                                    break
-                #print "fromPlatform.y = ", fromPlatform.y
-                for possPlat in possiblePlatforms: #Can't go higher than 2h
-                    #print "possPlat.y = ", possPlat.y
-                    if (possPlat.y > (fromPlatform.y + (2*h))):
-                        #print "removed", possPlat.y
-                        possiblePlatforms.remove(possPlat)       
+                                    goodXPos = x_pos+0
+                                    break     
                 if len(possiblePlatforms) != 0:
                     p = random.randint(0,len(possiblePlatforms)-1)
-                    endPlatform = possiblePlatforms[p]                
-                    ladder = Ladder(x_pos, fromPlatform.y, endPlatform.y - fromPlatform.y)
-                    #print "ladder", "x_pos = ", x_pos, "fromPlatform.y = ", fromPlatform.y, "toPlatform.y = ", toPlatform.y
-                    if len(self.ladders) > 0:                    
-                        for allLadders in self.ladders:
-                            print allLadders.rect
-                            if ((ladder.x+LADDER_WIDTH) in range(allLadders.x, allLadders.x + LADDER_WIDTH)) or (ladder.x in range(allLadders.x, allLadders.x + LADDER_WIDTH)):
-                                print ladder.x, "found a bad one!"                                
-                                continue                            
+                    endPlatform = possiblePlatforms[p]
+                    ladder = Ladder(goodXPos, fromPlatform.y, endPlatform.y - fromPlatform.y)
+                    if len(self.ladders) > 0:
+                        goodLadder = False                  
+                        for j in range (len(self.ladders)):
+                            lad = self.ladders[j]
+                            if (ladder.x >= lad.x) and (ladder.x < (lad.x + LADDER_WIDTH)):
+                                goodLadder = False
+                                break
+                            if (ladder.x <= lad.x) and (ladder.x+LADDER_WIDTH in range (lad.x, lad.x+LADDER_WIDTH)):
+                                goodLadder = False
+                                break
                             else:
-                                self.ladders.append(ladder)
-                                print ladder.x, "created a ladder"
-                        print "--------"
+                                goodLadder = True
+                        if goodLadder == True:
+                            self.ladders.append(ladder)
+                            print "created ladder"
                     else:
                         self.ladders.append(ladder)
+                        print "found first ladder"
             
     def genGems(self):
         
@@ -374,7 +384,8 @@ class Jumpman(Actor): #Defines Jumpman the one and only
         self.lives = J_LIVES
     
     def update(self):
-        Actor.update(self)
+        if self.rect.left + self.vx >= 0 and self.rect.right + self.vx <= WINDOWWIDTH and self.rect.bottom + self.vy <= WINDOWHEIGHT-5:
+            Actor.update(self)
 
     def jump(self):
         self.vy -=0.75 #fiddle with actual number, was selected arbitrarily. it felt GOOD
